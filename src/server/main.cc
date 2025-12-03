@@ -12,8 +12,8 @@ int main(int argc, char** argv) {
     cfg.dn_port = 50010;
     cfg.datanode_endpoint = "127.0.0.1:50010";
 
-    cfg.ceph.mon_hosts = "10.0.0.1,10.0.0.2";
-    cfg.ceph.user = "client.hdfs";
+    cfg.ceph.mon_hosts = "10.20.40.85";
+    cfg.ceph.user = "hdfs";
     cfg.ceph.keyring_path = "/etc/ceph/ceph.client.hdfs.keyring";
     cfg.ceph.root_prefix = "/hdfs_root";
 
