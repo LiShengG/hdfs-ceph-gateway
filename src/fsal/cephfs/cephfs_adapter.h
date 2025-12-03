@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <cephfs/libcephfs.h> 
 
 namespace hcg {
 
@@ -48,6 +49,8 @@ public:
     int init(const CephFsConfig& cfg) override;
     int shutdown() override;
 
+    std::string full_path(const std::string& path);
+
     int create(const std::string& path, int mode, bool overwrite) override;
     int open(const std::string& path, int flags, int mode, int& out_fd) override;
     int close(int fd) override;
@@ -71,6 +74,8 @@ public:
 private:
     CephFsConfig cfg_;
     bool inited_ {false};
+    ceph_mount_info* cm_ = nullptr;
+    std::string mount_root_;     // 如果用了 mount_root_ 也要声明
 
     // TODO: 这里以后加 libcephfs 相关句柄，如 struct ceph_mount_info* mount_;
 };

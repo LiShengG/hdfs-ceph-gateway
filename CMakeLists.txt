@@ -9,4 +9,8 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+find_package(Protobuf REQUIRED)
+message(STATUS "Found Protobuf: ${Protobuf_VERSION}")
+add_subdirectory(proto)
+
 add_subdirectory(src)

@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+package hcg.internal;
+
+// 让 protoc 生成通用 C++ service 接口（不用 gRPC 也能有一个虚基类）
+// 有的环境会提示 deprecated，但可以先用着，后续如果不用可以删掉这行。
+option cc_generic_services = true;
+
+// 通用状态码，阶段0先用 errno 或自定义整型即可
+message RpcStatus {
+  int32  code    = 1; // 0 = OK, 其他 = 错误码
+  string message = 2; // 错误说明，可选
+}
+
+// 内部文件句柄，方便后面扩展
+message FileHandle {
+  uint64 file_id = 1;
+  string path    = 2;
+}
+
+// 内部 block 句柄：file_id + index
+message BlockHandle {
+  uint64 file_id = 1;
+  uint64 index   = 2;
+}
+
+// 文件状态，类似 HDFS FileStatus
+message FileStatusProto {
+  string path        = 1;
+  bool   is_dir      = 2;
+  uint64 length      = 3;
+  uint32 replication = 4;
+  uint64 block_size  = 5;
+  uint32 mode        = 6; // POSIX mode bits (e.g. 0644)
+  string owner       = 7;
+  string group       = 8;
+  uint64 modification_time = 9;
+  uint64 access_time       = 10;
+}
+
+// ---------- CreateFile ----------
+
+message CreateFileRequest {
+  string path        = 1;
+  uint32 mode        = 2; // 0644, 0755 ...
+  uint32 replication = 3; // 暂时仅做记录，不真正用
+  uint64 block_size  = 4; // 默认为 128MB，可通过配置覆盖
+}
+
+message CreateFileResponse {
+  RpcStatus  status = 1;
+  FileHandle handle = 2; // status.code == 0 时有效
+}
+
+// ---------- GetFileInfo ----------
+
+message GetFileInfoRequest {
+  string path = 1;
+}
+
+message GetFileInfoResponse {
+  RpcStatus        status = 1;
+  FileStatusProto  status_info = 2;
+}
+
+// ---------- ListStatus ----------
+
+message ListStatusRequest {
+  string path = 1;
+}
+
+message ListStatusResponse {
+  RpcStatus              status = 1;
+  repeated FileStatusProto entries = 2;
+}
+
+// ---------- Delete ----------
+
+message DeleteRequest {
+  string path      = 1;
+  bool   recursive = 2;
+}
+
+message DeleteResponse {
+  RpcStatus status = 1;
+}
+
+// ---------- AllocateBlock (类似 HDFS addBlock) ----------
+
+message AllocateBlockRequest {
+  string path = 1;
+}
+
+message AllocateBlockResponse {
+  RpcStatus   status      = 1;
+  BlockHandle block       = 2;
+  uint64      block_size  = 3;
+}
+
+// ---------- GetBlockLocations ----------
+
+message GetBlockLocationsRequest {
+  string path   = 1;
+  uint64 offset = 2; // 起始偏移，阶段0可以传0
+  uint64 length = 3; // 长度，阶段0可以传 0 或 max，表示全部
+}
+
+message BlockLocationProto {
+  BlockHandle block   = 1;
+  uint64      offset  = 2; // 相对文件的 offset
+  uint64      length  = 3;
+  repeated string datanodes = 4; // 阶段0可以只填 ["127.0.0.1:50010"] 之类
+}
+
+message GetBlockLocationsResponse {
+  RpcStatus              status = 1;
+  repeated BlockLocationProto blocks = 2;
+}
+
+// ---------- WriteBlock / ReadBlock ----------
+
+message WriteBlockRequest {
+  BlockHandle block          = 1;
+  uint64      offset_in_block = 2;
+  bytes       data            = 3;
+}
+
+message WriteBlockResponse {
+  RpcStatus status        = 1;
+  uint64    bytes_written = 2;
+}
+
+message ReadBlockRequest {
+  BlockHandle block          = 1;
+  uint64      offset_in_block = 2;
+  uint64      length          = 3; // 请求读取长度
+}
+
+message ReadBlockResponse {
+  RpcStatus status = 1;
+  bytes     data   = 2;
+}
+
+// ---------- Complete ----------
+
+message CompleteRequest {
+  string path = 1;
+}
+
+message CompleteResponse {
+  RpcStatus status = 1;
+}
+
+// ---------- Internal 网关服务定义 ----------
+// 阶段0：你可以用自定义 TCP + length-prefix 调用这些 RPC
+// 也可以未来用 gRPC 的 C++ 插件生成 stub 来调用。
+
+service InternalGateway {
+  // namespace / 文件操作
+  rpc CreateFile         (CreateFileRequest)         returns (CreateFileResponse);
+  rpc GetFileInfo        (GetFileInfoRequest)        returns (GetFileInfoResponse);
+  rpc ListStatus         (ListStatusRequest)         returns (ListStatusResponse);
+  rpc Delete             (DeleteRequest)             returns (DeleteResponse);
+
+  // block 管理
+  rpc AllocateBlock      (AllocateBlockRequest)      returns (AllocateBlockResponse);
+  rpc GetBlockLocations  (GetBlockLocationsRequest)  returns (GetBlockLocationsResponse);
+
+  // 数据读写
+  rpc WriteBlock         (WriteBlockRequest)         returns (WriteBlockResponse);
+  rpc ReadBlock          (ReadBlockRequest)          returns (ReadBlockResponse);
+
+  // 写完成
+  rpc Complete           (CompleteRequest)           returns (CompleteResponse);
+}

@@ -10,6 +10,8 @@
 #include "core/lease/lease_manager.h"
 #include "protocol/namenode/namenode_rpc_server.h"
 #include "protocol/datanode/datanode_server.h"
+#include "rpc/internal/internal_rpc_server.h"
+#include "rpc/internal/internal_gateway_service.h"
 
 namespace hcg {
 
@@ -45,6 +47,8 @@ private:
 
     std::unique_ptr<NameNodeRpcServer> nn_server_;
     std::unique_ptr<DataNodeServer> dn_server_;
+    std::unique_ptr<internal_rpc::InternalRpcServer> internal_rpc_server_;
+    std::shared_ptr<IInternalGatewayService> internal_service_;
 
     bool running_ {false};
 };
