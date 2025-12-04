@@ -22,6 +22,7 @@ message FileHandle {
 message BlockHandle {
   uint64 file_id = 1;
   uint64 index   = 2;
+  string path    = 3;
 }
 
 // 文件状态，类似 HDFS FileStatus

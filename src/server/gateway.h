@@ -39,7 +39,7 @@ public:
 private:
     GatewayConfig cfg_;
 
-    std::unique_ptr<CephFsAdapter> ceph_;
+    std::shared_ptr<CephFsAdapter> ceph_;
     std::unique_ptr<XattrMetadataStore> meta_;
     std::unique_ptr<NamespaceService> ns_;
     std::unique_ptr<BlockManager> bm_;

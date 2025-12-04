@@ -36,6 +36,7 @@ add_library(hdfs_ceph_gateway_lib
     server/gateway.cc
     rpc/internal/internal_rpc_server.cc
     rpc/internal/internal_rpc_client.cc
+    rpc/internal/internal_gateway_service_impl.cc
     # 注意：头文件通常不需要列在这里，除非是模板实现或需要安装
 )
 

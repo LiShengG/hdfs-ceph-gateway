@@ -49,6 +49,12 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "cstring": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "cinttypes": "cpp"
     }
 }

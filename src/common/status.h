@@ -15,6 +15,14 @@ public:
     int code() const { return code_; }
     const std::string& message() const { return msg_; }
 
+    bool operator==(const Status& other) const {
+        return code_ == other.code_ && msg_ == other.msg_;
+    }
+
+    bool operator!=(const Status& other) const {
+        return !(*this == other);
+    }
+
 private:
     int code_ {0};
     std::string msg_;

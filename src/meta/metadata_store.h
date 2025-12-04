@@ -9,8 +9,14 @@ namespace hcg {
 
 struct FileBlockMeta {
     FileId file_id;
-    std::uint64_t block_size;
     std::vector<BlockInfo> blocks;
+    std::uint64_t block_size {128ULL * 1024 * 1024};
+    std::uint32_t replication {1};
+    std::uint64_t length {0};   // 文件逻辑长度（字节）
+
+    bool is_valid() const {
+        return block_size > 0;
+    }
 };
 
 class IMetadataStore {

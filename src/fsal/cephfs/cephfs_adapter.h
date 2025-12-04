@@ -6,6 +6,13 @@
 
 namespace hcg {
 
+struct CephStat {
+    bool is_dir {false};
+    std::uint64_t size {0};
+    std::uint32_t mode {0};
+    std::uint64_t mtime_sec {0};
+    std::uint64_t atime_sec {0};
+};
 struct CephFsConfig {
     std::string mon_hosts;
     std::string user;
@@ -49,8 +56,6 @@ public:
     int init(const CephFsConfig& cfg) override;
     int shutdown() override;
 
-    std::string full_path(const std::string& path);
-
     int create(const std::string& path, int mode, bool overwrite) override;
     int open(const std::string& path, int flags, int mode, int& out_fd) override;
     int close(int fd) override;
@@ -76,7 +81,10 @@ private:
     bool inited_ {false};
     ceph_mount_info* cm_ = nullptr;
     std::string mount_root_;     // 如果用了 mount_root_ 也要声明
+    std::string full_path(const std::string& path);
 
+public:
+    int stat(const std::string& path, CephStat& st);
     // TODO: 这里以后加 libcephfs 相关句柄，如 struct ceph_mount_info* mount_;
 };
 
