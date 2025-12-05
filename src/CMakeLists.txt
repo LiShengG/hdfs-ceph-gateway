@@ -24,21 +24,16 @@ add_executable(gwctl
 # 定义库
 # ===================================================================
 
-add_library(hdfs_ceph_gateway_lib
-    common/logging.cc
-    fsal/cephfs/cephfs_adapter.cc
-    meta/xattr_metadata_store.cc
-    core/namespace/namespace_service.cc
-    core/block/block_manager.cc
-    core/lease/lease_manager.cc
-    protocol/namenode/namenode_rpc_server.cc
-    protocol/datanode/datanode_server.cc
-    server/gateway.cc
-    rpc/internal/internal_rpc_server.cc
-    rpc/internal/internal_rpc_client.cc
-    rpc/internal/internal_gateway_service_impl.cc
-    # 注意：头文件通常不需要列在这里，除非是模板实现或需要安装
+file(GLOB_RECURSE SRC_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/fsal/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/meta/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/server/*.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/rpc/*.cc
 )
+add_library(hdfs_ceph_gateway_lib ${SRC_FILES})
 
 # ===================================================================
 # 包含目录（推荐使用 target_include_directories 替代 include_directories）
@@ -74,6 +69,7 @@ endif()
 target_link_libraries(hdfs_ceph_gateway_lib
     PUBLIC
         gateway_internal_proto
+        hdfs_rpc_proto
         ${CEPHFS_LIB}
         ${RADOS_LIB}
         protobuf::libprotobuf

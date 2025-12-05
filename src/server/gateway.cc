@@ -4,6 +4,7 @@
 #include "rpc/internal/internal_gateway_service_dummy.h"
 #include "common/logging.h"
 #include "rpc/internal/internal_gateway_service_impl.h"
+#include "protocol/namenode/hdfs_namenode_service_impl.h"
 #include "meta/xattr_metadata_store.h"
 
 namespace hcg {
@@ -25,20 +26,6 @@ int HdfsCephGateway::init() {
         return rc;
     }
 
-    // meta_ = std::make_unique<XattrMetadataStore>(ceph_.get());
-    // ns_ = std::make_unique<NamespaceService>();
-    // bm_ = std::make_unique<BlockManager>(meta_.get(), cfg_.datanode_endpoint);
-    // lm_ = std::make_unique<LeaseManager>();
-
-    // nn_server_ = std::make_unique<NameNodeRpcServer>(
-    //     ns_.get(), bm_.get(), lm_.get());
-    // dn_server_ = std::make_unique<DataNodeServer>(
-    //     bm_.get(), ceph_.get());
-  
-    // internal RPC 部分
-    // internal_service_ = std::make_shared<DummyInternalGatewayService>();
-    // internal_rpc_server_ = std::make_unique<internal_rpc::InternalRpcServer>(internal_service_);
-
     // 2) 创建 metadata store
     auto meta_store = std::make_shared<XattrMetadataStore>(ceph_);
 
@@ -48,6 +35,10 @@ int HdfsCephGateway::init() {
     // 4) InternalRpcServer
     internal_rpc_server_ =
         std::make_unique<internal_rpc::InternalRpcServer>(internal_service_);
+
+    // Stage 1: HDFS NN 服务实现（基于 internal_service_）
+    hdfs_nn_svc_ = std::make_shared<HdfsNamenodeServiceImpl>(internal_service_);
+    hdfs_rpc_ = std::make_unique<HdfsRpcServer>(hdfs_nn_svc_);
 
     return 0;
 }
@@ -66,6 +57,11 @@ int HdfsCephGateway::start() {
     int rc = internal_rpc_server_->start("0.0.0.0", 19000);
     if (rc != 0) {
         log(LogLevel::ERROR, "start internal RPC server failed rc=%d", rc);
+        return rc;
+    }
+    rc = hdfs_rpc_->start("0.0.0.0", 9000); // 这里端口你可以通过配置来
+    if (rc != 0) {
+        log(LogLevel::ERROR, "start hdfs_rpc_ RPC server failed rc=%d", rc);
         return rc;
     }
 
