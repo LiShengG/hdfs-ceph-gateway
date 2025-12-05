@@ -45,7 +45,7 @@ int CephFsAdapter::init(const CephFsConfig& cfg) {
     ceph_conf_set(cm_, "ms_auth_supported", "cephx");
 
     // 开启详细日志
-    ceph_conf_set(cm_, "log_to_stderr", "true");
+    // ceph_conf_set(cm_, "log_to_stderr", "true");
     // ceph_conf_set(cm_, "debug_client", "20");
     // ceph_conf_set(cm_, "debug_auth", "20");
     // ceph_conf_set(cm_, "debug_ms", "20");
