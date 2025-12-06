@@ -62,15 +62,131 @@ void HdfsNamenodeServiceImpl::deletePath(
 }
 
 void HdfsNamenodeServiceImpl::create(
-    const hadoop::hdfs::CreateRequestProto& req,
-    hadoop::hdfs::CreateResponseProto& rsp) {
-    // TODO: 实现 create 功能（创建文件）
-    // 1. 解析 req 获取文件路径、副本数、块大小等
-    // 2. 调用 internal_->createFile(...) 创建文件
-    // 3. 如果成功，获取第一个 Block 信息并设置到 rsp.mutable_fs()
-    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::create called (stub).");
-    // rsp.mutable_fs(); // 初始化文件状态
-    rsp.clear_fs(); // 明确表示未设置
+    const hadoop::hdfs::CreateRequestProto &req,
+    hadoop::hdfs::CreateResponseProto &rsp) {
+    
+    rsp.Clear();
+
+    const std::string &src = req.src();
+    const std::string &client = req.clientname(); // 目前没用到，但先取出来
+
+    // ---- 1. 解析 permission / flags / block size / replication ----
+    // FsPermissionProto.perm 就是 UNIX mode bits（16 bit）
+    uint32_t mode = 0644;
+    if (req.has_masked() && req.masked().has_perm()) {
+    mode = req.masked().perm() & 0777; // 只保留低 9 位 rwxrwxrwx
+    }
+
+    uint32_t replication = req.replication(); // HDFS 里是 uint32, 实际只用 16 bit
+    uint64_t block_size = req.blocksize();    // 注意：auto-complete 看下是
+                                            // blocksize() 还是 block_size()
+
+    // createFlag 是位掩码：0x01 CREATE, 0x02 OVERWRITE, 0x04 APPEND
+    uint32_t create_flag = req.createflag();
+    bool overwrite = (create_flag & 0x02u) != 0;
+    bool append = (create_flag & 0x04u) != 0;
+
+    // 当前阶段不支持 append，直接打日志（严格一点可以映射成 RPC 异常）
+    if (append) {
+        log(LogLevel::ERROR,
+            "HdfsNamenodeServiceImpl::create: APPEND not supported, src=%s "
+            "client=%s",
+            src.c_str(), client.c_str());
+        // 当前阶段我们不走异常栈，保持与其它 RPC
+        // 一致：返回一个“空响应”，上层一般会报错
+        rsp.clear_fs();
+        return;
+    }
+
+    bool create_parent = req.createparent();
+
+    log(LogLevel::INFO,
+        "HdfsNamenodeServiceImpl::create src=%s mode=%o repl=%u block_size=%llu "
+        "overwrite=%d create_parent=%d",
+        src.c_str(), mode, replication,
+        static_cast<unsigned long long>(block_size), overwrite, create_parent);
+
+    // ---- 2. 组装 internal::CreateFileRequest ----
+    internal::CreateFileRequest ireq;
+    ireq.set_path(src);
+    ireq.set_mode(mode);
+    ireq.set_replication(replication);
+    ireq.set_block_size(block_size);
+    ireq.set_overwrite(overwrite);
+    ireq.set_create_parent(create_parent);
+
+    internal::CreateFileResponse iresp;
+
+    // ---- 3. 调用内部网关（CephFS 适配） ----
+    bool ok = internal_->CreateFile(ireq, &iresp);
+    if (!ok) {
+    log(LogLevel::ERROR,
+        "HdfsNamenodeServiceImpl::create: internal_->CreateFile RPC failed, "
+        "src=%s",
+        src.c_str());
+        rsp.clear_fs();
+        return;
+    }
+
+    if (iresp.status_code() != 0) {
+        log(LogLevel::ERROR,
+            "HdfsNamenodeServiceImpl::create: CreateFile error src=%s code=%d "
+            "msg=%s",
+            src.c_str(), iresp.status_code(), iresp.error_message().c_str());
+        rsp.clear_fs();
+        return;
+    }
+
+    // ---- 4. 把 internal FileStatus 映射成 HdfsFileStatusProto 填到 rsp.fs ----
+    // 这里假设 CreateFileResponse 一定带回最终的文件状态（length=0 的普通文件）
+    if (!iresp.has_status()) {
+        // 内部没回 status，就按“无返回”处理（合法，对应 Hadoop 里的
+        // VOID_CREATE_RESPONSE）
+        rsp.clear_fs();
+        return;
+    }
+
+    const internal::FileStatus &ist = iresp.status();
+
+    hadoop::hdfs::HdfsFileStatusProto *fs = rsp.mutable_fs();
+
+    // 根据你 gateway_internal.proto 定义调整这些字段名字
+    fs->set_length(ist.length()); // 文件长度，create 完为 0
+    fs->set_filetype(ist.is_dir() ? hadoop::hdfs::HdfsFileStatusProto::IS_DIR
+                                : hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
+    fs->set_block_replication(ist.replication());
+    fs->set_blocksize(ist.block_size());
+    fs->set_modification_time(ist.modification_time());
+    fs->set_access_time(ist.access_time());
+
+    // owner / group
+    fs->set_owner(ist.owner());
+    fs->set_group(ist.group());
+
+    // permission：FsPermissionProto.perm = UNIX mode bits
+    hadoop::hdfs::FsPermissionProto *perm_proto = fs->mutable_permission();
+    perm_proto->set_perm(ist.mode() & 0777);
+
+    // 路径：HdfsFileStatusProto 里 path 是 bytes，存 basename（不含父目录）
+    // 这里按 HDFS 语义只存最后一段名字：
+    std::string name = src;
+    if (!name.empty() && name.back() == '/') {
+        name.pop_back();
+    }
+    auto pos = name.find_last_of('/');
+        if (pos != std::string::npos) {
+        name = name.substr(pos + 1);
+    }
+    fs->set_path(name); // 注意：proto 里是 bytes path = 10; C++ 是 set_path(const
+                        // std::string&)
+
+    // 对于 Create 阶段，我们先不返回 block 位置信息（locations），HDFS
+    // 客户端后续会走 addBlock 如果你已经实现 LocatedBlocks，可以在这里额外填
+    // fs->mutable_locations()
+
+    log(LogLevel::DEBUG,
+        "HdfsNamenodeServiceImpl::create success src=%s length=%llu", src.c_str(),
+        static_cast<unsigned long long>(fs->length()));
 }
 
 void HdfsNamenodeServiceImpl::addBlock(
