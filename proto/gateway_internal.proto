@@ -46,11 +46,24 @@ message CreateFileRequest {
   uint32 mode        = 2; // 0644, 0755 ...
   uint32 replication = 3; // 暂时仅做记录，不真正用
   uint64 block_size  = 4; // 默认为 128MB，可通过配置覆盖
+  bool    overwrite   = 5;
+  bool    create_parent = 6;
+}
+
+enum CreateFileStatus {
+  CREATE_FILE_STATUS_OK = 0;
+  CREATE_FILE_STATUS_PERMISSION_DENIED = 1;
+  CREATE_FILE_STATUS_ALREADY_EXISTS = 2;
+  CREATE_FILE_STATUS_INVALID_PATH = 3;
+  CREATE_FILE_STATUS_INTERNAL_ERROR = 4;
 }
 
 message CreateFileResponse {
   RpcStatus  status = 1;
   FileHandle handle = 2; // status.code == 0 时有效
+  FileStatusProto FileStatus =3;
+  CreateFileStatus status_code =4;
+  string error_message = 5;
 }
 
 // ---------- GetFileInfo ----------

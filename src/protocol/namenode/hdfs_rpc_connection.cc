@@ -12,6 +12,7 @@
 #include "RpcHeader.pb.h"             // hadoop.common.RpcRequestHeaderProto / RpcResponseHeaderProto
 #include "ProtobufRpcEngine.pb.h"     // hadoop.common.RequestHeaderProto
 #include "ClientNamenodeProtocol.pb.h"// hadoop.hdfs.*RequestProto / *ResponseProto
+#include "IpcConnectionContext.pb.h"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
@@ -81,13 +82,11 @@ bool HdfsRpcConnection::read_preamble() {
 }
 
 bool HdfsRpcConnection::handle_one_call() {
-    // 1) 先读 4 字节的 total length（network byte order）
+    // 1) 读 total_len + buf
     std::uint32_t net_len = 0;
     if (!read_full(fd_, &net_len, sizeof(net_len))) {
-        // 正常关闭或读错，都视为连接结束
         return false;
     }
-
     std::uint32_t total_len = ntohl(net_len);
     if (total_len == 0) {
         std::cerr << "[HdfsRpcConnection] invalid packet length=0\n";
@@ -102,7 +101,7 @@ bool HdfsRpcConnection::handle_one_call() {
     ArrayInputStream ais(buf.data(), static_cast<int>(buf.size()));
     CodedInputStream cis(&ais);
 
-    // 2) 解析 RpcRequestHeaderProto（带自己的 length 前缀）
+    // 2) 先解析 RpcRequestHeaderProto
     ::hadoop::common::RpcRequestHeaderProto rpc_header;
     {
         std::uint32_t header_len = 0;
@@ -118,7 +117,39 @@ bool HdfsRpcConnection::handle_one_call() {
         cis.PopLimit(limit);
     }
 
-    // 3) 解析 RequestHeaderProto（同样带 length 前缀）
+    int32_t call_id = rpc_header.callid();  // 注意是有符号
+    // std::cerr << "call_id=" << call_id << " rpc_kind=" << rpc_header.rpckind() << "\n";
+
+    // 3) 如果是握手（ConnectionContext），第二个消息是 IpcConnectionContextProto
+    if (!handshake_done_ && call_id == -3) {
+        ::hadoop::common::IpcConnectionContextProto ctx;
+        std::uint32_t ctx_len = 0;
+        if (!cis.ReadVarint32(&ctx_len)) {
+            std::cerr << "[HdfsRpcConnection] failed to read IpcConnectionContext length\n";
+            return false;
+        }
+        auto limit = cis.PushLimit(static_cast<int>(ctx_len));
+        if (!ctx.ParseFromCodedStream(&cis)) {
+            std::cerr << "[HdfsRpcConnection] failed to parse IpcConnectionContext\n";
+            return false;
+        }
+        cis.PopLimit(limit);
+
+        // 可以从 ctx 里取出 user / protocol 信息，保存到连接状态
+        if (ctx.has_userinfo() && ctx.userinfo().has_effectiveuser()) {
+            user_ = ctx.userinfo().effectiveuser();
+        }
+        if (ctx.has_protocol()) {
+            auto protocol_name_ = ctx.protocol();
+        }
+
+        handshake_done_ = true;
+        std::cerr << "[HdfsRpcConnection] connection context ok, user=" << user_
+                  << " protocol=" << protocol_name_ << "\n";
+        return true;  // 握手完成即可
+    }
+
+    // 4) 普通 RPC 请求：第二个消息才是 RequestHeaderProto
     ::hadoop::common::RequestHeaderProto req_header;
     {
         std::uint32_t header_len = 0;
@@ -134,9 +165,9 @@ bool HdfsRpcConnection::handle_one_call() {
         cis.PopLimit(limit);
     }
 
-    // 4) 剩下的是 param（方法的 RequestProto），一般也有一个 varint32 length 前缀
+    // 5) 剩余是 param：varint32 长度 + RequestProto
     std::string param_bytes;
-    if (!cis.ConsumedEntireMessage()) {
+    {
         std::uint32_t param_len = 0;
         if (!cis.ReadVarint32(&param_len)) {
             std::cerr << "[HdfsRpcConnection] failed to read param length\n";
@@ -213,8 +244,8 @@ bool HdfsRpcConnection::dispatch(
     const std::string& proto_name = req_header.declaringclassprotocolname();
     const std::string& method     = req_header.methodname();
 
-    // 目前只打算处理 ClientNamenodeProtocol，其它协议直接报错
-    if (proto_name != "org.apache.hadoop.hdfs.protocol.ClientNamenodeProtocol") {
+    // 目前只打算处理 ClientProtocol，其它协议直接报错
+    if (proto_name != "org.apache.hadoop.hdfs.protocol.ClientProtocol") {
         std::cerr << "[HdfsRpcConnection] unsupported protocol: " << proto_name << "\n";
         return false;
     }
@@ -245,12 +276,12 @@ bool HdfsRpcConnection::dispatch(
 
     } else if (method == "getFileInfo") {
         // TODO: 类似 mkdirs:
-        // ::hadoop::hdfs::GetFileInfoRequestProto req;
-        // ::hadoop::hdfs::GetFileInfoResponseProto rsp;
-        // req.ParseFromString(param_bytes);
-        // service_->getFileInfo(req, rsp);
-        // rsp.SerializeToString(&out_response_bytes);
-        return false;
+        ::hadoop::hdfs::GetFileInfoRequestProto req;
+        ::hadoop::hdfs::GetFileInfoResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->getFileInfo(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
 
     } else if (method == "getServerDefaults") {
         // TODO: 建议优先实现这个，方便最小闭环测试
@@ -285,10 +316,12 @@ bool HdfsRpcConnection::dispatch(
 
     } else if (method == "create") {
         // TODO:
-        // ::hadoop::hdfs::CreateRequestProto req;
-        // ::hadoop::hdfs::CreateResponseProto rsp;
-        // ...
-        return false;
+        ::hadoop::hdfs::CreateRequestProto req;
+        ::hadoop::hdfs::CreateResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->create(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
 
     } else if (method == "addBlock") {
         // TODO:
@@ -298,11 +331,12 @@ bool HdfsRpcConnection::dispatch(
         return false;
 
     } else if (method == "complete") {
-        // TODO:
-        // ::hadoop::hdfs::CompleteRequestProto req;
-        // ::hadoop::hdfs::CompleteResponseProto rsp;
-        // ...
-        return false;
+        TODO:
+        ::hadoop::hdfs::CompleteRequestProto req;
+        ::hadoop::hdfs::CompleteResponseProto rsp;
+        service_->complete(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
 
     } else {
         std::cerr << "[HdfsRpcConnection] unsupported method: " << method << "\n";

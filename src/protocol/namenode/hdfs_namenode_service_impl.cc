@@ -28,15 +28,32 @@ void HdfsNamenodeServiceImpl::getFileInfo(
     // 2. 调用 internal_->getAttr(...) 获取文件元数据
     // 3. 将元数据填充到 rsp.mutable_fs()
     log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::getFileInfo called (stub).");
-    // rsp.mutable_fs()->set_path(req.src()); // 示例：设置路径
-    // rsp.mutable_fs()->set_length(0);
-    // rsp.mutable_fs()->set_isdir(false);
-    // rsp.mutable_fs()->set_blocksize(0);
-    // rsp.mutable_fs()->set_mtime(0);
-    // rsp.mutable_fs()->set_atime(0);
-    // rsp.mutable_fs()->set_permission(0755);
-    // rsp.mutable_fs()->set_owner("root");
-    // rsp.mutable_fs()->set_group("root");
+    rsp.mutable_fs()->set_path(req.src()); // 示例：设置路径
+    rsp.mutable_fs()->set_length(0);
+    rsp.mutable_fs()->set_filetype(hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
+    rsp.mutable_fs()->set_blocksize(0);
+    auto* perm = new hadoop::hdfs::FsPermissionProto();
+    perm->set_perm(0755); 
+    rsp.mutable_fs()->set_allocated_permission(perm);
+    rsp.mutable_fs()->set_modification_time(0);
+    rsp.mutable_fs()->set_access_time(0);
+    rsp.mutable_fs()->set_owner("root");
+    rsp.mutable_fs()->set_group("root");
+
+
+    // hadoop::hdfs::HdfsFileStatusProto *fs = rsp.mutable_fs();
+
+    // fs->set_length(ist.length()); // 文件长度，create 完为 0
+    // fs->set_filetype(ist.is_dir() ? hadoop::hdfs::HdfsFileStatusProto::IS_DIR
+    //                             : hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
+    // fs->set_block_replication(ist.replication());
+    // fs->set_blocksize(ist.block_size());
+    // fs->set_modification_time(ist.modification_time());
+    // fs->set_access_time(ist.access_time());
+
+    // owner / group
+    // fs->set_owner(ist.owner());
+    // fs->set_group(ist.group());
 }
 
 void HdfsNamenodeServiceImpl::listStatus(
@@ -74,7 +91,7 @@ void HdfsNamenodeServiceImpl::create(
     // FsPermissionProto.perm 就是 UNIX mode bits（16 bit）
     uint32_t mode = 0644;
     if (req.has_masked() && req.masked().has_perm()) {
-    mode = req.masked().perm() & 0777; // 只保留低 9 位 rwxrwxrwx
+        mode = req.masked().perm() & 0777; // 只保留低 9 位 rwxrwxrwx
     }
 
     uint32_t replication = req.replication(); // HDFS 里是 uint32, 实际只用 16 bit
@@ -118,16 +135,7 @@ void HdfsNamenodeServiceImpl::create(
     internal::CreateFileResponse iresp;
 
     // ---- 3. 调用内部网关（CephFS 适配） ----
-    bool ok = internal_->CreateFile(ireq, &iresp);
-    if (!ok) {
-    log(LogLevel::ERROR,
-        "HdfsNamenodeServiceImpl::create: internal_->CreateFile RPC failed, "
-        "src=%s",
-        src.c_str());
-        rsp.clear_fs();
-        return;
-    }
-
+    internal_->CreateFile(ireq, iresp);
     if (iresp.status_code() != 0) {
         log(LogLevel::ERROR,
             "HdfsNamenodeServiceImpl::create: CreateFile error src=%s code=%d "
@@ -146,11 +154,9 @@ void HdfsNamenodeServiceImpl::create(
         return;
     }
 
-    const internal::FileStatus &ist = iresp.status();
-
+    const internal::FileStatusProto& ist = iresp.filestatus();
     hadoop::hdfs::HdfsFileStatusProto *fs = rsp.mutable_fs();
 
-    // 根据你 gateway_internal.proto 定义调整这些字段名字
     fs->set_length(ist.length()); // 文件长度，create 完为 0
     fs->set_filetype(ist.is_dir() ? hadoop::hdfs::HdfsFileStatusProto::IS_DIR
                                 : hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
@@ -208,7 +214,7 @@ void HdfsNamenodeServiceImpl::complete(
     // 2. 调用 internal_->completeFile(...) 完成文件写入
     // 3. 根据结果设置 rsp.set_result(true/false)
     log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::complete called (stub).");
-    rsp.set_result(false); // 默认失败
+    rsp.set_result(true); 
 }
 
 void HdfsNamenodeServiceImpl::getServerDefaults(
@@ -234,7 +240,6 @@ void HdfsNamenodeServiceImpl::getFsStatus(
     // rsp.set_under_replicated(0);
     // rsp.set_corrupt_blocks(0);
     // rsp.set_missing_blocks(0);
-    // rsp.set_num_files(0);
 }
 
 } // namespace hcg

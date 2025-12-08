@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
 #include "protocol/namenode/hdfs_namenode_service.h"
 #include "RpcHeader.pb.h"  // RpcRequestHeaderProto / RpcResponseHeaderProto
-#include "ProtobufRpcEngine.pb.cc"
+#include "ProtobufRpcEngine.pb.h"
 
 namespace hcg {
 
@@ -19,6 +20,9 @@ public:
 private:
     int fd_;
     std::shared_ptr<IHdfsNamenodeService> service_;
+    bool handshake_done_;
+    std::string user_;
+    std::string protocol_name_;
 
     bool read_preamble();        // 读取 "hrpc" + 版本 + auth
     bool handle_one_call();      // 读取一个 RPC 请求并回复

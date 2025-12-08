@@ -1,5 +1,6 @@
 
 #include "protocol/namenode/hdfs_rpc_server.h"
+#include "hdfs_rpc_connection.h"
 
 #include "common/logging.h"
 
@@ -161,18 +162,22 @@ void HdfsRpcServer::handle_client(int client_fd) {
 
     // Example placeholder logic:
     // You would replace this with real HDFS RPC parsing/dispatching
-    char buffer[1024];
-    ssize_t bytes_read;
-    while ((bytes_read = read(client_fd, buffer, sizeof(buffer))) > 0) {
-        // Echo back for testing
-        write(client_fd, buffer, bytes_read);
-    }
+    // char buffer[1024];
+    // ssize_t bytes_read;
+    // while ((bytes_read = read(client_fd, buffer, sizeof(buffer))) > 0) {
+    //     // Echo back for testing
+    //     write(client_fd, buffer, bytes_read);
+    // }
 
-    if (bytes_read < 0) {
-        log(LogLevel::ERROR, "Error reading from client fd=%d: %s", client_fd, strerror(errno));
-    } else {
-       log(LogLevel::DEBUG, "Client fd=%d disconnected gracefully.", client_fd);
-    }
+    // if (bytes_read < 0) {
+    //     log(LogLevel::ERROR, "Error reading from client fd=%d: %s", client_fd, strerror(errno));
+    // } else {
+    //    log(LogLevel::DEBUG, "Client fd=%d disconnected gracefully.", client_fd);
+    // }
+
+    // 当前阶段：每个连接上可以处理多个 RPC，直到对端关闭
+    HdfsRpcConnection conn(client_fd, nn_service_);
+    conn.serve();
 
     ::close(client_fd);
 }
