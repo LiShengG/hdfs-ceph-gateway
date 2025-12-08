@@ -5,6 +5,7 @@
 
 #include "protocol/namenode/hdfs_namenode_service.h"
 #include "RpcHeader.pb.h"  // RpcRequestHeaderProto / RpcResponseHeaderProto
+#include "ProtobufRpcEngine.pb.cc"
 
 namespace hcg {
 
@@ -27,7 +28,7 @@ private:
 
     // 调度：根据 methodName 调用 service_
     bool dispatch(const ::hadoop::common::RpcRequestHeaderProto& rpc_header,
-                //   const ::hadoop::hdfs::ClientNamenodeProtocolRequestHeaderProto& req_header,
+                  const ::hadoop::common::RequestHeaderProto& req_header,
                   const std::string& param_bytes,
                   std::string& out_response_bytes);
 };
