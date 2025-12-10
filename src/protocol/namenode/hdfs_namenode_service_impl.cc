@@ -269,11 +269,24 @@ void HdfsNamenodeServiceImpl::complete(
 void HdfsNamenodeServiceImpl::getServerDefaults(
     const hadoop::hdfs::GetServerDefaultsRequestProto& req,
     hadoop::hdfs::GetServerDefaultsResponseProto& rsp) {
-    // TODO: 实现 getServerDefaults 功能（获取 HDFS 服务器默认配置）
-    // 1. 从 internal_ 或配置中获取默认值（如 blocksize, replication 等）
-    // 2. 填充到 rsp.mutable_stats()
-    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::getServerDefaults called (stub).");
-    // rsp.mutable_stats(); // 初始化默认配置
+    
+    auto* defaults = rsp.mutable_serverdefaults();
+
+    // 必填字段（required）——必须全部设置！
+    defaults->set_blocksize(134217728ULL);        // 128 MB (Hadoop 默认)
+    defaults->set_bytesperchecksum(512);         // 校验块大小
+    defaults->set_writepacketsize(65536);        // 写 packet 大小（64KB）
+    defaults->set_replication(3);                // 副本数（实际用低16位）
+    defaults->set_filebuffersize(4096);          // 文件缓冲区大小（4KB）
+
+    defaults->set_encryptdatatransfer(false);    // 默认 false，可省略
+    defaults->set_trashinterval(3600ULL);        // 回收站保留时间（秒），0=禁用
+    defaults->set_checksumtype(hadoop::hdfs::CHECKSUM_CRC32); // 默认值，可省略
+    // defaults->set_keyprovideruri("...");      // 如未配置加密，可不设
+    // defaults->set_policyid(0);                // 默认 0，可省略
+
+    log(LogLevel::DEBUG, "getServerDefaults: blockSize={}, replication={}",
+        defaults->blocksize(), defaults->replication());
 }
 
 void HdfsNamenodeServiceImpl::getFsStatus(
