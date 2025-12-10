@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <errno.h>
 
 namespace hcg
 {
@@ -132,6 +133,8 @@ namespace hcg
 
     // ---------- GetFileInfo ----------
 
+
+
     void InternalGatewayServiceImpl::GetFileInfo(
         const internal::GetFileInfoRequest &req,
         internal::GetFileInfoResponse &rsp)
@@ -140,35 +143,48 @@ namespace hcg
         set_status_ok(st);
 
         const std::string &path = req.path();
-        CephStat cs;
+        CephStat cs{};
         int rc = ceph_->stat(path, cs);
-        if (rc < 0)
-        {
-            set_status_err(st, rc, "stat failed");
+        if (rc < 0) {
+            if (rc == -ENOENT) {
+                // 路径不存在：
+                // 语义上返回“OK + 没有 status_info”，交由上层通过 has_status_info() 判定 not found。
+                log(LogLevel::DEBUG,
+                    "InternalGatewayServiceImpl::GetFileInfo: path '%s' not found (ENOENT)",
+                    path.c_str());
+                return;
+            }
+
+            // 其它错误：记录到 status 中，供上层决定是否映射成 RPC ERROR
+            set_status_err(st, rc, "ceph_->stat failed");
+            log(LogLevel::ERROR,
+                "InternalGatewayServiceImpl::GetFileInfo: stat('%s') failed, rc=%d",
+                path.c_str(), rc);
             return;
         }
 
-        FileBlockMeta meta;
-        bool has_meta = meta_store_->load_file_block_meta(path, meta) != Status::OK();
-        if (!has_meta)
-        {
-            // 对于目录或非 HDFS 产生的文件，meta 可能不存在
-            meta.block_size = 128ULL * 1024 * 1024;
+        // 走到这里说明 stat 成功，开始准备 block 元数据
+        FileBlockMeta meta{};
+        Status s = meta_store_->load_file_block_meta(path, meta);
+        bool has_meta = (s == Status::OK());
+        if (!has_meta) {
+            // 对于目录或非 HDFS 产生的文件，meta 可能不存在，使用兜底默认值
+            meta.block_size  = 128ULL * 1024 * 1024;  // 128MB
             meta.replication = 1;
-            meta.length = cs.size;
+            meta.length      = cs.size;
         }
 
         auto *fs = rsp.mutable_status_info();
         fs->set_path(path);
         fs->set_is_dir(cs.is_dir);
-        fs->set_length(cs.size);
+        fs->set_length(meta.length);             // 使用 meta.length
         fs->set_replication(meta.replication);
         fs->set_block_size(meta.block_size);
         fs->set_mode(cs.mode);
-        fs->set_owner("hdfs"); // Stage 0 简化
+        fs->set_owner("hdfs");                   // Stage 0 简化
         fs->set_group("hdfs");
-        fs->set_modification_time(cs.mtime_sec * 1000);
-        fs->set_access_time(cs.atime_sec * 1000);
+        fs->set_modification_time(cs.mtime_sec * 1000); // ms
+        fs->set_access_time(cs.atime_sec * 1000);       // ms
     }
 
     // ---------- ListStatus ----------

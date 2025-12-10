@@ -35,37 +35,65 @@ void HdfsNamenodeServiceImpl::mkdirs(const hadoop::hdfs::MkdirsRequestProto& req
 void HdfsNamenodeServiceImpl::getFileInfo(
     const hadoop::hdfs::GetFileInfoRequestProto& req,
     hadoop::hdfs::GetFileInfoResponseProto& rsp) {
-    // TODO: 实现 getFileInfo 功能
-    // 1. 解析 req 获取文件路径
-    // 2. 调用 internal_->getAttr(...) 获取文件元数据
-    // 3. 将元数据填充到 rsp.mutable_fs()
-    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::getFileInfo called (stub).");
-    rsp.mutable_fs()->set_path(req.src()); // 示例：设置路径
-    rsp.mutable_fs()->set_length(0);
-    rsp.mutable_fs()->set_filetype(hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
-    rsp.mutable_fs()->set_blocksize(0);
-    auto* perm = new hadoop::hdfs::FsPermissionProto();
-    perm->set_perm(0755); 
-    rsp.mutable_fs()->set_allocated_permission(perm);
-    rsp.mutable_fs()->set_modification_time(0);
-    rsp.mutable_fs()->set_access_time(0);
-    rsp.mutable_fs()->set_owner("root");
-    rsp.mutable_fs()->set_group("root");
 
+    log(LogLevel::DEBUG,
+        "HdfsNamenodeServiceImpl::getFileInfo called for path: %s",
+        req.src().c_str());
 
-    // hadoop::hdfs::HdfsFileStatusProto *fs = rsp.mutable_fs();
+    // 1) 组装内部请求
+    internal::GetFileInfoRequest ireq;
+    ireq.set_path(req.src());
 
-    // fs->set_length(ist.length()); // 文件长度，create 完为 0
-    // fs->set_filetype(ist.is_dir() ? hadoop::hdfs::HdfsFileStatusProto::IS_DIR
-    //                             : hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
-    // fs->set_block_replication(ist.replication());
-    // fs->set_blocksize(ist.block_size());
-    // fs->set_modification_time(ist.modification_time());
-    // fs->set_access_time(ist.access_time());
+    // 2) 调用内部服务
+    internal::GetFileInfoResponse irsp;
+    internal_->GetFileInfo(ireq, irsp);
 
-    // owner / group
-    // fs->set_owner(ist.owner());
-    // fs->set_group(ist.group());
+    // 3) 按 HDFS 语义处理“不存在”的情况：
+    //    - 对 getFileInfo 来说，“不存在”= 返回 success 且 fs 字段为 null
+    //    - proto 层就是：GetFileInfoResponseProto 中不设置 fs
+    if (!irsp.has_status_info()) {
+        // 这里不区分 ENOENT 和其它错误，Stage 0 先统一视为“not found”，
+        // 后续如需区分，可以检查 irsp.status() 决定是否转成 RPC ERROR。
+        log(LogLevel::DEBUG,
+            "HdfsNamenodeServiceImpl::getFileInfo: path '%s' not found (no status_info)",
+            req.src().c_str());
+        return;  // 不调用 rsp.mutable_fs()，让 fs 字段缺省
+    }
+
+    // 4) 正常存在：填充 HdfsFileStatusProto
+    const auto& status = irsp.status_info();
+    auto* fs = rsp.mutable_fs();
+
+    // 注意：HdfsFileStatusProto.path 是“本地名”（不带父目录）的 UTF8 bytes，
+    // Stage 0 暂时可直接使用完整路径，后续再按需要裁剪为 basename。
+    fs->set_path(status.path());
+
+    fs->set_length(status.length());
+    fs->set_owner(status.owner());
+    fs->set_group(status.group());
+    fs->set_modification_time(status.modification_time());
+    fs->set_access_time(status.access_time());
+
+    // 权限直接使用内部的 mode（假定已是 16bit POSIX 权限位）
+    fs->mutable_permission()->set_perm(status.mode());
+
+    if (status.is_dir()) {
+        fs->set_filetype(::hadoop::hdfs::HdfsFileStatusProto::IS_DIR);
+        // 目录的 length 通常为 0（或实现自定义），block 信息对目录意义不大
+        fs->set_blocksize(0);
+        fs->set_block_replication(0);
+    } else {
+        fs->set_filetype(::hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
+        // 使用内部 meta 中带出的 block_size / replication
+        fs->set_blocksize(status.block_size());
+        fs->set_block_replication(status.replication());
+    }
+
+    // TODO: 如果内部将 symlink 信息也放入 status，可在这里扩展：
+    // if (status.is_symlink()) {
+    //     fs->set_filetype(::hadoop::hdfs::HdfsFileStatusProto::IS_SYMLINK);
+    //     fs->set_symlink(status.symlink_target());
+    // }
 }
 
 void HdfsNamenodeServiceImpl::listStatus(

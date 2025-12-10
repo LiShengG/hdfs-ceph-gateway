@@ -4,6 +4,12 @@ set(SRC_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 # 全局编译定义（若确实需全局生效；否则建议移到具体 target）
 add_compile_definitions(_FILE_OFFSET_BITS=64)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g -O1")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g -O1")
+
+# 链接时也要加 sanitizer 库（GCC/Clang 通常自动处理，但显式加更保险）
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+
 # ===================================================================
 # 定义可执行文件（必须在 target_link_libraries 之前！）
 # ===================================================================
@@ -34,6 +40,11 @@ file(GLOB_RECURSE SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/rpc/*.cc
 )
 add_library(hdfs_ceph_gateway_lib ${SRC_FILES})
+
+set_source_files_properties(
+    src/protocol/namenode/hdfs_rpc_connection.cc
+    PROPERTIES COMPILE_FLAGS "-O0 -g"
+)
 
 # ===================================================================
 # 包含目录（推荐使用 target_include_directories 替代 include_directories）
@@ -89,3 +100,25 @@ target_link_libraries(gwctl
     PRIVATE
         hdfs_ceph_gateway_lib
 )
+
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+
+if(ENABLE_ASAN)
+    message(STATUS "Building with AddressSanitizer (ASan)")
+    set(ASAN_FLAGS
+        -fsanitize=address
+        -fno-omit-frame-pointer
+        -g
+        -O1
+    )
+    set(ASAN_TARGETS
+        hdfs_ceph_gateway_lib
+        hdfs_ceph_gateway
+        test_cephfs
+        gwctl
+    )
+    foreach(tgt ${ASAN_TARGETS})
+        target_compile_options(${tgt} PRIVATE ${ASAN_FLAGS})
+        target_link_options(${tgt} PRIVATE -fsanitize=address)
+    endforeach()
+endif()

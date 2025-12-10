@@ -16,6 +16,7 @@
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include "common/logging.h" // 假设你有日志库
 
 namespace hcg {
 
@@ -27,7 +28,11 @@ using google::protobuf::io::StringOutputStream;
 HdfsRpcConnection::HdfsRpcConnection(
     int fd,
     std::shared_ptr<IHdfsNamenodeService> service)
-    : fd_(fd), service_(std::move(service)) {}
+    : fd_(fd), service_(std::move(service)) {
+        log(LogLevel::DEBUG, "HdfsRpcConnection ctor this=%p, fd=%d", this, fd_);
+
+        // LOG_DEBUG("HdfsRpcConnection ctor this=%p, fd=%d", this, fd_);
+    }
 
 HdfsRpcConnection::~HdfsRpcConnection() {
     if (fd_ >= 0) {
@@ -241,8 +246,18 @@ bool HdfsRpcConnection::dispatch(
     const std::string& param_bytes,
     std::string& out_response_bytes) {
 
+    // log(LogLevel::DEBUG, "dispatch this=%p", this);
+    log(LogLevel::DEBUG, "dispatch enter this=%p, call_id=%d, method=%s, param_len=%zu",
+            (void*)this,
+            rpc_header.callid(),
+            req_header.methodname().c_str(),
+            param_bytes.size());
+
+
     const std::string& proto_name = req_header.declaringclassprotocolname();
     const std::string& method     = req_header.methodname();
+
+    log(LogLevel::DEBUG, "dispatch: call_id=%d method=%s", rpc_header.callid(), method.c_str());
 
     // 目前只打算处理 ClientProtocol，其它协议直接报错
     if (proto_name != "org.apache.hadoop.hdfs.protocol.ClientProtocol") {
@@ -253,29 +268,19 @@ bool HdfsRpcConnection::dispatch(
     std::cerr << "[HdfsRpcConnection] callId=" << rpc_header.callid()
               << " method=" << method << "\n";
 
-    // ======= 下面是具体方法的分发骨架，全部用 TODO 标出来，后续你来补 =======
+    // ======= 下面是具体方法的分发骨架 =======
 
     if (method == "mkdirs") {
-        // TODO:
-        // 1. 解析 param_bytes 为 hadoop::hdfs::MkdirsRequestProto
-        // 2. 调用 service_->mkdirs(req, rsp);
-        // 3. 把 rsp SerializeToString 到 out_response_bytes
-        //
-        // 示例（实现时）：
-        //
-        // ::hadoop::hdfs::MkdirsRequestProto req;
-        // req.ParseFromString(param_bytes);
-        //
-        // ::hadoop::hdfs::MkdirsResponseProto rsp;
-        // service_->mkdirs(req, rsp);
-        //
-        // rsp.SerializeToString(&out_response_bytes);
-        //
-        // 这里先返回 false，让上层走 ERROR 流程，等你实现完再改为 true。
-        return false;
+        ::hadoop::hdfs::MkdirsRequestProto req;
+        req.ParseFromString(param_bytes);
+        
+        ::hadoop::hdfs::MkdirsResponseProto rsp;
+        service_->mkdirs(req, rsp);
+        
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
 
     } else if (method == "getFileInfo") {
-        // TODO: 类似 mkdirs:
         ::hadoop::hdfs::GetFileInfoRequestProto req;
         ::hadoop::hdfs::GetFileInfoResponseProto rsp;
         req.ParseFromString(param_bytes);
@@ -284,35 +289,40 @@ bool HdfsRpcConnection::dispatch(
         return true;
 
     } else if (method == "getServerDefaults") {
-        // TODO: 建议优先实现这个，方便最小闭环测试
-        // ::hadoop::hdfs::GetServerDefaultsRequestProto req;
-        // ::hadoop::hdfs::GetServerDefaultsResponseProto rsp;
-        // req.ParseFromString(param_bytes);
-        // service_->getServerDefaults(req, rsp);
-        // rsp.SerializeToString(&out_response_bytes);
+        ::hadoop::hdfs::GetServerDefaultsRequestProto req;
+        ::hadoop::hdfs::GetServerDefaultsResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->getServerDefaults(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
         return false;
 
     } else if (method == "getFsStatus") {
         // TODO:
-        // ::hadoop::hdfs::GetFsStatusRequestProto req;
-        // ::hadoop::hdfs::GetFsStatusResponseProto rsp;
-        // ...
-        return false;
+        ::hadoop::hdfs::GetFsStatusRequestProto req;
+        ::hadoop::hdfs::GetFsStatsResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->getFsStatus(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
 
     } else if (method == "listStatus" || method == "getListing") {
         // HDFS 客户端常用 getListing，对应 ClientNamenodeProtocol 里的 GetListingRequestProto
         // TODO:
-        // ::hadoop::hdfs::GetListingRequestProto req;
-        // ::hadoop::hdfs::GetListingResponseProto rsp;
-        // ...
-        return false;
+        ::hadoop::hdfs::GetListingRequestProto req;
+        ::hadoop::hdfs::GetListingResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->listStatus(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
 
     } else if (method == "delete") {
         // TODO:
-        // ::hadoop::hdfs::DeleteRequestProto req;
-        // ::hadoop::hdfs::DeleteResponseProto rsp;
-        // ...
-        return false;
+        ::hadoop::hdfs::DeleteRequestProto req;
+        ::hadoop::hdfs::DeleteResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->deletePath(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
 
     } else if (method == "create") {
         // TODO:
