@@ -40,7 +40,7 @@ namespace protobuf_gateway_5finternal_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[23];
+  static const ::google::protobuf::internal::ParseTable schema[25];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -103,6 +103,12 @@ extern ListStatusRequestDefaultTypeInternal _ListStatusRequest_default_instance_
 class ListStatusResponse;
 class ListStatusResponseDefaultTypeInternal;
 extern ListStatusResponseDefaultTypeInternal _ListStatusResponse_default_instance_;
+class MkdirRequest;
+class MkdirRequestDefaultTypeInternal;
+extern MkdirRequestDefaultTypeInternal _MkdirRequest_default_instance_;
+class MkdirResponse;
+class MkdirResponseDefaultTypeInternal;
+extern MkdirResponseDefaultTypeInternal _MkdirResponse_default_instance_;
 class ReadBlockRequest;
 class ReadBlockRequestDefaultTypeInternal;
 extern ReadBlockRequestDefaultTypeInternal _ReadBlockRequest_default_instance_;
@@ -140,6 +146,8 @@ template<> ::hcg::internal::GetFileInfoRequest* Arena::CreateMaybeMessage<::hcg:
 template<> ::hcg::internal::GetFileInfoResponse* Arena::CreateMaybeMessage<::hcg::internal::GetFileInfoResponse>(Arena*);
 template<> ::hcg::internal::ListStatusRequest* Arena::CreateMaybeMessage<::hcg::internal::ListStatusRequest>(Arena*);
 template<> ::hcg::internal::ListStatusResponse* Arena::CreateMaybeMessage<::hcg::internal::ListStatusResponse>(Arena*);
+template<> ::hcg::internal::MkdirRequest* Arena::CreateMaybeMessage<::hcg::internal::MkdirRequest>(Arena*);
+template<> ::hcg::internal::MkdirResponse* Arena::CreateMaybeMessage<::hcg::internal::MkdirResponse>(Arena*);
 template<> ::hcg::internal::ReadBlockRequest* Arena::CreateMaybeMessage<::hcg::internal::ReadBlockRequest>(Arena*);
 template<> ::hcg::internal::ReadBlockResponse* Arena::CreateMaybeMessage<::hcg::internal::ReadBlockResponse>(Arena*);
 template<> ::hcg::internal::RpcStatus* Arena::CreateMaybeMessage<::hcg::internal::RpcStatus>(Arena*);
@@ -150,6 +158,28 @@ template<> ::hcg::internal::WriteBlockResponse* Arena::CreateMaybeMessage<::hcg:
 namespace hcg {
 namespace internal {
 
+enum FileStatusProto_FileType {
+  FileStatusProto_FileType_IS_DIR = 0,
+  FileStatusProto_FileType_IS_FILE = 1,
+  FileStatusProto_FileType_YMLINK = 2,
+  FileStatusProto_FileType_FileStatusProto_FileType_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
+  FileStatusProto_FileType_FileStatusProto_FileType_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
+};
+bool FileStatusProto_FileType_IsValid(int value);
+const FileStatusProto_FileType FileStatusProto_FileType_FileType_MIN = FileStatusProto_FileType_IS_DIR;
+const FileStatusProto_FileType FileStatusProto_FileType_FileType_MAX = FileStatusProto_FileType_YMLINK;
+const int FileStatusProto_FileType_FileType_ARRAYSIZE = FileStatusProto_FileType_FileType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* FileStatusProto_FileType_descriptor();
+inline const ::std::string& FileStatusProto_FileType_Name(FileStatusProto_FileType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    FileStatusProto_FileType_descriptor(), value);
+}
+inline bool FileStatusProto_FileType_Parse(
+    const ::std::string& name, FileStatusProto_FileType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<FileStatusProto_FileType>(
+    FileStatusProto_FileType_descriptor(), name, value);
+}
 enum CreateFileStatus {
   CREATE_FILE_STATUS_OK = 0,
   CREATE_FILE_STATUS_PERMISSION_DENIED = 1,
@@ -622,6 +652,34 @@ class FileStatusProto : public ::google::protobuf::Message /* @@protoc_insertion
 
   // nested types ----------------------------------------------------
 
+  typedef FileStatusProto_FileType FileType;
+  static const FileType IS_DIR =
+    FileStatusProto_FileType_IS_DIR;
+  static const FileType IS_FILE =
+    FileStatusProto_FileType_IS_FILE;
+  static const FileType YMLINK =
+    FileStatusProto_FileType_YMLINK;
+  static inline bool FileType_IsValid(int value) {
+    return FileStatusProto_FileType_IsValid(value);
+  }
+  static const FileType FileType_MIN =
+    FileStatusProto_FileType_FileType_MIN;
+  static const FileType FileType_MAX =
+    FileStatusProto_FileType_FileType_MAX;
+  static const int FileType_ARRAYSIZE =
+    FileStatusProto_FileType_FileType_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  FileType_descriptor() {
+    return FileStatusProto_FileType_descriptor();
+  }
+  static inline const ::std::string& FileType_Name(FileType value) {
+    return FileStatusProto_FileType_Name(value);
+  }
+  static inline bool FileType_Parse(const ::std::string& name,
+      FileType* value) {
+    return FileStatusProto_FileType_Parse(name, value);
+  }
+
   // accessors -------------------------------------------------------
 
   // string path = 1;
@@ -727,6 +785,249 @@ class FileStatusProto : public ::google::protobuf::Message /* @@protoc_insertion
 };
 // -------------------------------------------------------------------
 
+class MkdirRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hcg.internal.MkdirRequest) */ {
+ public:
+  MkdirRequest();
+  virtual ~MkdirRequest();
+
+  MkdirRequest(const MkdirRequest& from);
+
+  inline MkdirRequest& operator=(const MkdirRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  MkdirRequest(MkdirRequest&& from) noexcept
+    : MkdirRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline MkdirRequest& operator=(MkdirRequest&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const MkdirRequest& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const MkdirRequest* internal_default_instance() {
+    return reinterpret_cast<const MkdirRequest*>(
+               &_MkdirRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  void Swap(MkdirRequest* other);
+  friend void swap(MkdirRequest& a, MkdirRequest& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline MkdirRequest* New() const final {
+    return CreateMaybeMessage<MkdirRequest>(NULL);
+  }
+
+  MkdirRequest* New(::google::protobuf::Arena* arena) const final {
+    return CreateMaybeMessage<MkdirRequest>(arena);
+  }
+  void CopyFrom(const ::google::protobuf::Message& from) final;
+  void MergeFrom(const ::google::protobuf::Message& from) final;
+  void CopyFrom(const MkdirRequest& from);
+  void MergeFrom(const MkdirRequest& from);
+  void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) final;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const final;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(MkdirRequest* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string path = 1;
+  void clear_path();
+  static const int kPathFieldNumber = 1;
+  const ::std::string& path() const;
+  void set_path(const ::std::string& value);
+  #if LANG_CXX11
+  void set_path(::std::string&& value);
+  #endif
+  void set_path(const char* value);
+  void set_path(const char* value, size_t size);
+  ::std::string* mutable_path();
+  ::std::string* release_path();
+  void set_allocated_path(::std::string* path);
+
+  // uint32 mode = 2;
+  void clear_mode();
+  static const int kModeFieldNumber = 2;
+  ::google::protobuf::uint32 mode() const;
+  void set_mode(::google::protobuf::uint32 value);
+
+  // bool parents = 3;
+  void clear_parents();
+  static const int kParentsFieldNumber = 3;
+  bool parents() const;
+  void set_parents(bool value);
+
+  // @@protoc_insertion_point(class_scope:hcg.internal.MkdirRequest)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr path_;
+  ::google::protobuf::uint32 mode_;
+  bool parents_;
+  mutable ::google::protobuf::internal::CachedSize _cached_size_;
+  friend struct ::protobuf_gateway_5finternal_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
+class MkdirResponse : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hcg.internal.MkdirResponse) */ {
+ public:
+  MkdirResponse();
+  virtual ~MkdirResponse();
+
+  MkdirResponse(const MkdirResponse& from);
+
+  inline MkdirResponse& operator=(const MkdirResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  MkdirResponse(MkdirResponse&& from) noexcept
+    : MkdirResponse() {
+    *this = ::std::move(from);
+  }
+
+  inline MkdirResponse& operator=(MkdirResponse&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const MkdirResponse& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const MkdirResponse* internal_default_instance() {
+    return reinterpret_cast<const MkdirResponse*>(
+               &_MkdirResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  void Swap(MkdirResponse* other);
+  friend void swap(MkdirResponse& a, MkdirResponse& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline MkdirResponse* New() const final {
+    return CreateMaybeMessage<MkdirResponse>(NULL);
+  }
+
+  MkdirResponse* New(::google::protobuf::Arena* arena) const final {
+    return CreateMaybeMessage<MkdirResponse>(arena);
+  }
+  void CopyFrom(const ::google::protobuf::Message& from) final;
+  void MergeFrom(const ::google::protobuf::Message& from) final;
+  void CopyFrom(const MkdirResponse& from);
+  void MergeFrom(const MkdirResponse& from);
+  void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) final;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const final;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(MkdirResponse* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string error_message = 2;
+  void clear_error_message();
+  static const int kErrorMessageFieldNumber = 2;
+  const ::std::string& error_message() const;
+  void set_error_message(const ::std::string& value);
+  #if LANG_CXX11
+  void set_error_message(::std::string&& value);
+  #endif
+  void set_error_message(const char* value);
+  void set_error_message(const char* value, size_t size);
+  ::std::string* mutable_error_message();
+  ::std::string* release_error_message();
+  void set_allocated_error_message(::std::string* error_message);
+
+  // int32 status = 1;
+  void clear_status();
+  static const int kStatusFieldNumber = 1;
+  ::google::protobuf::int32 status() const;
+  void set_status(::google::protobuf::int32 value);
+
+  // @@protoc_insertion_point(class_scope:hcg.internal.MkdirResponse)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr error_message_;
+  ::google::protobuf::int32 status_;
+  mutable ::google::protobuf::internal::CachedSize _cached_size_;
+  friend struct ::protobuf_gateway_5finternal_2eproto::TableStruct;
+};
+// -------------------------------------------------------------------
+
 class CreateFileRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:hcg.internal.CreateFileRequest) */ {
  public:
   CreateFileRequest();
@@ -762,7 +1063,7 @@ class CreateFileRequest : public ::google::protobuf::Message /* @@protoc_inserti
                &_CreateFileRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    6;
 
   void Swap(CreateFileRequest* other);
   friend void swap(CreateFileRequest& a, CreateFileRequest& b) {
@@ -908,7 +1209,7 @@ class CreateFileResponse : public ::google::protobuf::Message /* @@protoc_insert
                &_CreateFileResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    7;
 
   void Swap(CreateFileResponse* other);
   friend void swap(CreateFileResponse& a, CreateFileResponse& b) {
@@ -1065,7 +1366,7 @@ class GetFileInfoRequest : public ::google::protobuf::Message /* @@protoc_insert
                &_GetFileInfoRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    8;
 
   void Swap(GetFileInfoRequest* other);
   friend void swap(GetFileInfoRequest& a, GetFileInfoRequest& b) {
@@ -1176,7 +1477,7 @@ class GetFileInfoResponse : public ::google::protobuf::Message /* @@protoc_inser
                &_GetFileInfoResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    9;
 
   void Swap(GetFileInfoResponse* other);
   friend void swap(GetFileInfoResponse& a, GetFileInfoResponse& b) {
@@ -1298,7 +1599,7 @@ class ListStatusRequest : public ::google::protobuf::Message /* @@protoc_inserti
                &_ListStatusRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    10;
 
   void Swap(ListStatusRequest* other);
   friend void swap(ListStatusRequest& a, ListStatusRequest& b) {
@@ -1409,7 +1710,7 @@ class ListStatusResponse : public ::google::protobuf::Message /* @@protoc_insert
                &_ListStatusResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    11;
 
   void Swap(ListStatusResponse* other);
   friend void swap(ListStatusResponse& a, ListStatusResponse& b) {
@@ -1531,7 +1832,7 @@ class DeleteRequest : public ::google::protobuf::Message /* @@protoc_insertion_p
                &_DeleteRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    12;
 
   void Swap(DeleteRequest* other);
   friend void swap(DeleteRequest& a, DeleteRequest& b) {
@@ -1649,7 +1950,7 @@ class DeleteResponse : public ::google::protobuf::Message /* @@protoc_insertion_
                &_DeleteResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    13;
 
   void Swap(DeleteResponse* other);
   friend void swap(DeleteResponse& a, DeleteResponse& b) {
@@ -1758,7 +2059,7 @@ class AllocateBlockRequest : public ::google::protobuf::Message /* @@protoc_inse
                &_AllocateBlockRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    14;
 
   void Swap(AllocateBlockRequest* other);
   friend void swap(AllocateBlockRequest& a, AllocateBlockRequest& b) {
@@ -1869,7 +2170,7 @@ class AllocateBlockResponse : public ::google::protobuf::Message /* @@protoc_ins
                &_AllocateBlockResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    13;
+    15;
 
   void Swap(AllocateBlockResponse* other);
   friend void swap(AllocateBlockResponse& a, AllocateBlockResponse& b) {
@@ -1998,7 +2299,7 @@ class GetBlockLocationsRequest : public ::google::protobuf::Message /* @@protoc_
                &_GetBlockLocationsRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    14;
+    16;
 
   void Swap(GetBlockLocationsRequest* other);
   friend void swap(GetBlockLocationsRequest& a, GetBlockLocationsRequest& b) {
@@ -2123,7 +2424,7 @@ class BlockLocationProto : public ::google::protobuf::Message /* @@protoc_insert
                &_BlockLocationProto_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    15;
+    17;
 
   void Swap(BlockLocationProto* other);
   friend void swap(BlockLocationProto& a, BlockLocationProto& b) {
@@ -2269,7 +2570,7 @@ class GetBlockLocationsResponse : public ::google::protobuf::Message /* @@protoc
                &_GetBlockLocationsResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    16;
+    18;
 
   void Swap(GetBlockLocationsResponse* other);
   friend void swap(GetBlockLocationsResponse& a, GetBlockLocationsResponse& b) {
@@ -2391,7 +2692,7 @@ class WriteBlockRequest : public ::google::protobuf::Message /* @@protoc_inserti
                &_WriteBlockRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    17;
+    19;
 
   void Swap(WriteBlockRequest* other);
   friend void swap(WriteBlockRequest& a, WriteBlockRequest& b) {
@@ -2522,7 +2823,7 @@ class WriteBlockResponse : public ::google::protobuf::Message /* @@protoc_insert
                &_WriteBlockResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    18;
+    20;
 
   void Swap(WriteBlockResponse* other);
   friend void swap(WriteBlockResponse& a, WriteBlockResponse& b) {
@@ -2638,7 +2939,7 @@ class ReadBlockRequest : public ::google::protobuf::Message /* @@protoc_insertio
                &_ReadBlockRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    19;
+    21;
 
   void Swap(ReadBlockRequest* other);
   friend void swap(ReadBlockRequest& a, ReadBlockRequest& b) {
@@ -2761,7 +3062,7 @@ class ReadBlockResponse : public ::google::protobuf::Message /* @@protoc_inserti
                &_ReadBlockResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    20;
+    22;
 
   void Swap(ReadBlockResponse* other);
   friend void swap(ReadBlockResponse& a, ReadBlockResponse& b) {
@@ -2885,7 +3186,7 @@ class CompleteRequest : public ::google::protobuf::Message /* @@protoc_insertion
                &_CompleteRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    21;
+    23;
 
   void Swap(CompleteRequest* other);
   friend void swap(CompleteRequest& a, CompleteRequest& b) {
@@ -2996,7 +3297,7 @@ class CompleteResponse : public ::google::protobuf::Message /* @@protoc_insertio
                &_CompleteResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    22;
+    24;
 
   void Swap(CompleteResponse* other);
   friend void swap(CompleteResponse& a, CompleteResponse& b) {
@@ -3684,6 +3985,162 @@ inline void FileStatusProto::set_access_time(::google::protobuf::uint64 value) {
   
   access_time_ = value;
   // @@protoc_insertion_point(field_set:hcg.internal.FileStatusProto.access_time)
+}
+
+// -------------------------------------------------------------------
+
+// MkdirRequest
+
+// string path = 1;
+inline void MkdirRequest::clear_path() {
+  path_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& MkdirRequest::path() const {
+  // @@protoc_insertion_point(field_get:hcg.internal.MkdirRequest.path)
+  return path_.GetNoArena();
+}
+inline void MkdirRequest::set_path(const ::std::string& value) {
+  
+  path_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:hcg.internal.MkdirRequest.path)
+}
+#if LANG_CXX11
+inline void MkdirRequest::set_path(::std::string&& value) {
+  
+  path_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:hcg.internal.MkdirRequest.path)
+}
+#endif
+inline void MkdirRequest::set_path(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  path_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:hcg.internal.MkdirRequest.path)
+}
+inline void MkdirRequest::set_path(const char* value, size_t size) {
+  
+  path_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:hcg.internal.MkdirRequest.path)
+}
+inline ::std::string* MkdirRequest::mutable_path() {
+  
+  // @@protoc_insertion_point(field_mutable:hcg.internal.MkdirRequest.path)
+  return path_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* MkdirRequest::release_path() {
+  // @@protoc_insertion_point(field_release:hcg.internal.MkdirRequest.path)
+  
+  return path_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void MkdirRequest::set_allocated_path(::std::string* path) {
+  if (path != NULL) {
+    
+  } else {
+    
+  }
+  path_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), path);
+  // @@protoc_insertion_point(field_set_allocated:hcg.internal.MkdirRequest.path)
+}
+
+// uint32 mode = 2;
+inline void MkdirRequest::clear_mode() {
+  mode_ = 0u;
+}
+inline ::google::protobuf::uint32 MkdirRequest::mode() const {
+  // @@protoc_insertion_point(field_get:hcg.internal.MkdirRequest.mode)
+  return mode_;
+}
+inline void MkdirRequest::set_mode(::google::protobuf::uint32 value) {
+  
+  mode_ = value;
+  // @@protoc_insertion_point(field_set:hcg.internal.MkdirRequest.mode)
+}
+
+// bool parents = 3;
+inline void MkdirRequest::clear_parents() {
+  parents_ = false;
+}
+inline bool MkdirRequest::parents() const {
+  // @@protoc_insertion_point(field_get:hcg.internal.MkdirRequest.parents)
+  return parents_;
+}
+inline void MkdirRequest::set_parents(bool value) {
+  
+  parents_ = value;
+  // @@protoc_insertion_point(field_set:hcg.internal.MkdirRequest.parents)
+}
+
+// -------------------------------------------------------------------
+
+// MkdirResponse
+
+// int32 status = 1;
+inline void MkdirResponse::clear_status() {
+  status_ = 0;
+}
+inline ::google::protobuf::int32 MkdirResponse::status() const {
+  // @@protoc_insertion_point(field_get:hcg.internal.MkdirResponse.status)
+  return status_;
+}
+inline void MkdirResponse::set_status(::google::protobuf::int32 value) {
+  
+  status_ = value;
+  // @@protoc_insertion_point(field_set:hcg.internal.MkdirResponse.status)
+}
+
+// string error_message = 2;
+inline void MkdirResponse::clear_error_message() {
+  error_message_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& MkdirResponse::error_message() const {
+  // @@protoc_insertion_point(field_get:hcg.internal.MkdirResponse.error_message)
+  return error_message_.GetNoArena();
+}
+inline void MkdirResponse::set_error_message(const ::std::string& value) {
+  
+  error_message_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:hcg.internal.MkdirResponse.error_message)
+}
+#if LANG_CXX11
+inline void MkdirResponse::set_error_message(::std::string&& value) {
+  
+  error_message_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:hcg.internal.MkdirResponse.error_message)
+}
+#endif
+inline void MkdirResponse::set_error_message(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  error_message_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:hcg.internal.MkdirResponse.error_message)
+}
+inline void MkdirResponse::set_error_message(const char* value, size_t size) {
+  
+  error_message_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:hcg.internal.MkdirResponse.error_message)
+}
+inline ::std::string* MkdirResponse::mutable_error_message() {
+  
+  // @@protoc_insertion_point(field_mutable:hcg.internal.MkdirResponse.error_message)
+  return error_message_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* MkdirResponse::release_error_message() {
+  // @@protoc_insertion_point(field_release:hcg.internal.MkdirResponse.error_message)
+  
+  return error_message_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void MkdirResponse::set_allocated_error_message(::std::string* error_message) {
+  if (error_message != NULL) {
+    
+  } else {
+    
+  }
+  error_message_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), error_message);
+  // @@protoc_insertion_point(field_set_allocated:hcg.internal.MkdirResponse.error_message)
 }
 
 // -------------------------------------------------------------------
@@ -5556,6 +6013,10 @@ inline void CompleteResponse::set_allocated_status(::hcg::internal::RpcStatus* s
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 
@@ -5565,6 +6026,11 @@ inline void CompleteResponse::set_allocated_status(::hcg::internal::RpcStatus* s
 namespace google {
 namespace protobuf {
 
+template <> struct is_proto_enum< ::hcg::internal::FileStatusProto_FileType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::hcg::internal::FileStatusProto_FileType>() {
+  return ::hcg::internal::FileStatusProto_FileType_descriptor();
+}
 template <> struct is_proto_enum< ::hcg::internal::CreateFileStatus> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::hcg::internal::CreateFileStatus>() {

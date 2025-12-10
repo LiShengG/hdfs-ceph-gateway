@@ -27,6 +27,11 @@ message BlockHandle {
 
 // 文件状态，类似 HDFS FileStatus
 message FileStatusProto {
+  enum FileType {
+    IS_DIR = 0;
+    IS_FILE = 1;
+    YMLINK = 2;
+  }
   string path        = 1;
   bool   is_dir      = 2;
   uint64 length      = 3;
@@ -38,6 +43,19 @@ message FileStatusProto {
   uint64 modification_time = 9;
   uint64 access_time       = 10;
 }
+
+// ---------- Mkdir ----------
+message MkdirRequest {
+  string path     = 1;
+  uint32 mode     = 2;   // 目录权限，如 0755
+  bool   parents  = 3;   // 是否递归创建父目录（类似 mkdir -p）
+}
+
+message MkdirResponse {
+  int32  status         = 1; // 0 表示成功，非 0 为错误码
+  string error_message  = 2;
+}
+
 
 // ---------- CreateFile ----------
 

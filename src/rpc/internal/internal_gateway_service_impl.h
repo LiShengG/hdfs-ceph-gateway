@@ -13,6 +13,9 @@ public:
                                std::shared_ptr<IMetadataStore> meta_store);
 
     // RPC 实现
+    void MakeDir(const internal::MkdirRequest& req,
+        internal::MkdirResponse& rsp) override; 
+
     void CreateFile(const internal::CreateFileRequest& req,
                     internal::CreateFileResponse& rsp) override;
 

@@ -16,6 +16,9 @@ class IInternalGatewayService {
 public:
     virtual ~IInternalGatewayService() = default;
 
+    virtual void MakeDir(const internal::MkdirRequest& req,
+                            internal::MkdirResponse& rsp) = 0;
+
     virtual void CreateFile(const internal::CreateFileRequest& req,
                             internal::CreateFileResponse& rsp) = 0;
 

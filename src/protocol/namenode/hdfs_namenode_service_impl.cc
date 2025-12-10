@@ -12,12 +12,24 @@ HdfsNamenodeServiceImpl::HdfsNamenodeServiceImpl(
 
 void HdfsNamenodeServiceImpl::mkdirs(const hadoop::hdfs::MkdirsRequestProto& req,
                                      hadoop::hdfs::MkdirsResponseProto& rsp) {
-    // TODO: 实现 mkdirs 功能
-    // 1. 解析 req 获取路径、权限等信息
-    // 2. 调用 internal_->createDirectory(...) 创建目录
-    // 3. 根据结果设置 rsp.set_result(true/false)
-    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::mkdirs called (stub).");
-    rsp.set_result(false); // 默认失败
+    uint32_t mode = 0644;
+    if (req.has_masked() && req.masked().has_perm()) {
+        mode = req.masked().perm() & 0777; // 只保留低 9 位 rwxrwxrwx
+    }
+
+    auto src = req.src();
+    auto createParent = req.createparent();
+
+    internal::MkdirRequest ireq;
+    ireq.set_path(src);
+    ireq.set_mode(mode);
+    ireq.set_parents(createParent);
+
+    internal::MkdirResponse ires;
+    internal_->MakeDir(ireq, ires);
+
+    log(LogLevel::INFO, "HdfsNamenodeServiceImpl::mkdirs called %s.", ires.status());
+    rsp.set_result(ires.status()); 
 }
 
 void HdfsNamenodeServiceImpl::getFileInfo(
@@ -59,23 +71,60 @@ void HdfsNamenodeServiceImpl::getFileInfo(
 void HdfsNamenodeServiceImpl::listStatus(
     const hadoop::hdfs::GetListingRequestProto& req,
     hadoop::hdfs::GetListingResponseProto& rsp) {
-    // TODO: 实现 listStatus 功能
-    // 1. 解析 req 获取目录路径和是否递归
-    // 2. 调用 internal_->listDirectory(...) 获取目录项列表
-    // 3. 将列表填充到 rsp.mutable_entries()
-    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::listStatus called (stub).");
-    // rsp.set_remainingentries(0); // 示例：设置剩余条目数
+
+    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::listStatus called for path: {}", req.src());
+
+    internal::ListStatusRequest ireq;
+    ireq.set_path(req.src());
+    // TODO: internal::ListStatus 支持 startAfter 和 needLocation，也应传递：
+    // ireq.set_start_after(req.startafter());  // 注意类型转换（bytes -> string）
+    // ireq.set_need_location(req.needlocation());
+
+    internal::ListStatusResponse irsp;
+    internal_->ListStatus(ireq, irsp);
+
+    auto* dirlist = rsp.mutable_dirlist(); 
+
+    // 填充文件列表
+    for (const auto& entry : irsp.entries()) {
+        std::cout << entry.path() << " (dir: " << entry.is_dir() << ")\n";
+
+        auto* status = dirlist->add_partiallisting();
+        if (entry.is_dir()) {
+            status->set_filetype(::hadoop::hdfs::HdfsFileStatusProto::IS_DIR);
+        } else {
+            status->set_filetype(::hadoop::hdfs::HdfsFileStatusProto::IS_FILE);
+        }
+
+        status->set_path(entry.path());
+        status->set_length(entry.length());
+        status->set_owner(entry.owner());
+        status->set_group(entry.group());
+        status->set_modification_time(entry.modification_time());
+        status->set_access_time(entry.access_time());
+        status->mutable_permission()->set_perm(entry.mode());
+    }
+
+    // 5. 设置 remainingEntries（示例：假设 irsp 有 has_more() 或 remaining 字段）
+    // 如果 internal::ListStatusResponse 没有剩余信息，可设为 0
+    dirlist->set_remainingentries(0);  
 }
 
 void HdfsNamenodeServiceImpl::deletePath(
     const hadoop::hdfs::DeleteRequestProto& req,
     hadoop::hdfs::DeleteResponseProto& rsp) {
-    // TODO: 实现 deletePath 功能
-    // 1. 解析 req 获取路径和是否递归删除
-    // 2. 调用 internal_->remove(...) 删除文件或目录
-    // 3. 根据结果设置 rsp.set_result(true/false)
-    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::deletePath called (stub).");
-    rsp.set_result(false); // 默认失败
+    auto src = req.src();
+    auto recursive = req.recursive();
+
+    internal::DeleteRequest ireq;
+    ireq.set_path(src);
+    ireq.set_recursive(recursive);
+
+    internal::DeleteResponse ires;
+    internal_->DeletePath(ireq, ires);
+
+    log(LogLevel::INFO, "HdfsNamenodeServiceImpl::deletePath called %d", ires.status().code());
+    rsp.set_result(ires.status().code()); 
 }
 
 void HdfsNamenodeServiceImpl::create(

@@ -48,6 +48,16 @@ class FileStatusProtoDefaultTypeInternal {
   ::google::protobuf::internal::ExplicitlyConstructed<FileStatusProto>
       _instance;
 } _FileStatusProto_default_instance_;
+class MkdirRequestDefaultTypeInternal {
+ public:
+  ::google::protobuf::internal::ExplicitlyConstructed<MkdirRequest>
+      _instance;
+} _MkdirRequest_default_instance_;
+class MkdirResponseDefaultTypeInternal {
+ public:
+  ::google::protobuf::internal::ExplicitlyConstructed<MkdirResponse>
+      _instance;
+} _MkdirResponse_default_instance_;
 class CreateFileRequestDefaultTypeInternal {
  public:
   ::google::protobuf::internal::ExplicitlyConstructed<CreateFileRequest>
@@ -201,6 +211,34 @@ static void InitDefaultsFileStatusProto() {
 
 ::google::protobuf::internal::SCCInfo<0> scc_info_FileStatusProto =
     {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsFileStatusProto}, {}};
+
+static void InitDefaultsMkdirRequest() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::hcg::internal::_MkdirRequest_default_instance_;
+    new (ptr) ::hcg::internal::MkdirRequest();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::hcg::internal::MkdirRequest::InitAsDefaultInstance();
+}
+
+::google::protobuf::internal::SCCInfo<0> scc_info_MkdirRequest =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsMkdirRequest}, {}};
+
+static void InitDefaultsMkdirResponse() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::hcg::internal::_MkdirResponse_default_instance_;
+    new (ptr) ::hcg::internal::MkdirResponse();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::hcg::internal::MkdirResponse::InitAsDefaultInstance();
+}
+
+::google::protobuf::internal::SCCInfo<0> scc_info_MkdirResponse =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsMkdirResponse}, {}};
 
 static void InitDefaultsCreateFileRequest() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -491,6 +529,8 @@ void InitDefaults() {
   ::google::protobuf::internal::InitSCC(&scc_info_FileHandle.base);
   ::google::protobuf::internal::InitSCC(&scc_info_BlockHandle.base);
   ::google::protobuf::internal::InitSCC(&scc_info_FileStatusProto.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_MkdirRequest.base);
+  ::google::protobuf::internal::InitSCC(&scc_info_MkdirResponse.base);
   ::google::protobuf::internal::InitSCC(&scc_info_CreateFileRequest.base);
   ::google::protobuf::internal::InitSCC(&scc_info_CreateFileResponse.base);
   ::google::protobuf::internal::InitSCC(&scc_info_GetFileInfoRequest.base);
@@ -512,8 +552,8 @@ void InitDefaults() {
   ::google::protobuf::internal::InitSCC(&scc_info_CompleteResponse.base);
 }
 
-::google::protobuf::Metadata file_level_metadata[23];
-const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[1];
+::google::protobuf::Metadata file_level_metadata[25];
+const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[2];
 const ::google::protobuf::ServiceDescriptor* file_level_service_descriptors[1];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
@@ -554,6 +594,21 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::FileStatusProto, group_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::FileStatusProto, modification_time_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::FileStatusProto, access_time_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::MkdirRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::MkdirRequest, path_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::MkdirRequest, mode_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::MkdirRequest, parents_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::MkdirResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::MkdirResponse, status_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::MkdirResponse, error_message_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::CreateFileRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -700,25 +755,27 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROT
   { 7, -1, sizeof(::hcg::internal::FileHandle)},
   { 14, -1, sizeof(::hcg::internal::BlockHandle)},
   { 22, -1, sizeof(::hcg::internal::FileStatusProto)},
-  { 37, -1, sizeof(::hcg::internal::CreateFileRequest)},
-  { 48, -1, sizeof(::hcg::internal::CreateFileResponse)},
-  { 58, -1, sizeof(::hcg::internal::GetFileInfoRequest)},
-  { 64, -1, sizeof(::hcg::internal::GetFileInfoResponse)},
-  { 71, -1, sizeof(::hcg::internal::ListStatusRequest)},
-  { 77, -1, sizeof(::hcg::internal::ListStatusResponse)},
-  { 84, -1, sizeof(::hcg::internal::DeleteRequest)},
-  { 91, -1, sizeof(::hcg::internal::DeleteResponse)},
-  { 97, -1, sizeof(::hcg::internal::AllocateBlockRequest)},
-  { 103, -1, sizeof(::hcg::internal::AllocateBlockResponse)},
-  { 111, -1, sizeof(::hcg::internal::GetBlockLocationsRequest)},
-  { 119, -1, sizeof(::hcg::internal::BlockLocationProto)},
-  { 128, -1, sizeof(::hcg::internal::GetBlockLocationsResponse)},
-  { 135, -1, sizeof(::hcg::internal::WriteBlockRequest)},
-  { 143, -1, sizeof(::hcg::internal::WriteBlockResponse)},
-  { 150, -1, sizeof(::hcg::internal::ReadBlockRequest)},
-  { 158, -1, sizeof(::hcg::internal::ReadBlockResponse)},
-  { 165, -1, sizeof(::hcg::internal::CompleteRequest)},
-  { 171, -1, sizeof(::hcg::internal::CompleteResponse)},
+  { 37, -1, sizeof(::hcg::internal::MkdirRequest)},
+  { 45, -1, sizeof(::hcg::internal::MkdirResponse)},
+  { 52, -1, sizeof(::hcg::internal::CreateFileRequest)},
+  { 63, -1, sizeof(::hcg::internal::CreateFileResponse)},
+  { 73, -1, sizeof(::hcg::internal::GetFileInfoRequest)},
+  { 79, -1, sizeof(::hcg::internal::GetFileInfoResponse)},
+  { 86, -1, sizeof(::hcg::internal::ListStatusRequest)},
+  { 92, -1, sizeof(::hcg::internal::ListStatusResponse)},
+  { 99, -1, sizeof(::hcg::internal::DeleteRequest)},
+  { 106, -1, sizeof(::hcg::internal::DeleteResponse)},
+  { 112, -1, sizeof(::hcg::internal::AllocateBlockRequest)},
+  { 118, -1, sizeof(::hcg::internal::AllocateBlockResponse)},
+  { 126, -1, sizeof(::hcg::internal::GetBlockLocationsRequest)},
+  { 134, -1, sizeof(::hcg::internal::BlockLocationProto)},
+  { 143, -1, sizeof(::hcg::internal::GetBlockLocationsResponse)},
+  { 150, -1, sizeof(::hcg::internal::WriteBlockRequest)},
+  { 158, -1, sizeof(::hcg::internal::WriteBlockResponse)},
+  { 165, -1, sizeof(::hcg::internal::ReadBlockRequest)},
+  { 173, -1, sizeof(::hcg::internal::ReadBlockResponse)},
+  { 180, -1, sizeof(::hcg::internal::CompleteRequest)},
+  { 186, -1, sizeof(::hcg::internal::CompleteResponse)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -726,6 +783,8 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&::hcg::internal::_FileHandle_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::hcg::internal::_BlockHandle_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::hcg::internal::_FileStatusProto_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::hcg::internal::_MkdirRequest_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::hcg::internal::_MkdirResponse_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::hcg::internal::_CreateFileRequest_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::hcg::internal::_CreateFileResponse_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::hcg::internal::_GetFileInfoRequest_default_instance_),
@@ -762,7 +821,7 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_PROTOBUF_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 23);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 25);
 }
 
 void AddDescriptorsImpl() {
@@ -772,82 +831,87 @@ void AddDescriptorsImpl() {
       "\n\tRpcStatus\022\014\n\004code\030\001 \001(\005\022\017\n\007message\030\002 \001"
       "(\t\"+\n\nFileHandle\022\017\n\007file_id\030\001 \001(\004\022\014\n\004pat"
       "h\030\002 \001(\t\";\n\013BlockHandle\022\017\n\007file_id\030\001 \001(\004\022"
-      "\r\n\005index\030\002 \001(\004\022\014\n\004path\030\003 \001(\t\"\304\001\n\017FileSta"
+      "\r\n\005index\030\002 \001(\004\022\014\n\004path\030\003 \001(\t\"\365\001\n\017FileSta"
       "tusProto\022\014\n\004path\030\001 \001(\t\022\016\n\006is_dir\030\002 \001(\010\022\016"
       "\n\006length\030\003 \001(\004\022\023\n\013replication\030\004 \001(\r\022\022\n\nb"
       "lock_size\030\005 \001(\004\022\014\n\004mode\030\006 \001(\r\022\r\n\005owner\030\007"
       " \001(\t\022\r\n\005group\030\010 \001(\t\022\031\n\021modification_time"
-      "\030\t \001(\004\022\023\n\013access_time\030\n \001(\004\"\202\001\n\021CreateFi"
-      "leRequest\022\014\n\004path\030\001 \001(\t\022\014\n\004mode\030\002 \001(\r\022\023\n"
-      "\013replication\030\003 \001(\r\022\022\n\nblock_size\030\004 \001(\004\022\021"
-      "\n\toverwrite\030\005 \001(\010\022\025\n\rcreate_parent\030\006 \001(\010"
-      "\"\346\001\n\022CreateFileResponse\022\'\n\006status\030\001 \001(\0132"
-      "\027.hcg.internal.RpcStatus\022(\n\006handle\030\002 \001(\013"
-      "2\030.hcg.internal.FileHandle\0221\n\nFileStatus"
-      "\030\003 \001(\0132\035.hcg.internal.FileStatusProto\0223\n"
-      "\013status_code\030\004 \001(\0162\036.hcg.internal.Create"
-      "FileStatus\022\025\n\rerror_message\030\005 \001(\t\"\"\n\022Get"
-      "FileInfoRequest\022\014\n\004path\030\001 \001(\t\"r\n\023GetFile"
-      "InfoResponse\022\'\n\006status\030\001 \001(\0132\027.hcg.inter"
-      "nal.RpcStatus\0222\n\013status_info\030\002 \001(\0132\035.hcg"
-      ".internal.FileStatusProto\"!\n\021ListStatusR"
-      "equest\022\014\n\004path\030\001 \001(\t\"m\n\022ListStatusRespon"
-      "se\022\'\n\006status\030\001 \001(\0132\027.hcg.internal.RpcSta"
-      "tus\022.\n\007entries\030\002 \003(\0132\035.hcg.internal.File"
-      "StatusProto\"0\n\rDeleteRequest\022\014\n\004path\030\001 \001"
-      "(\t\022\021\n\trecursive\030\002 \001(\010\"9\n\016DeleteResponse\022"
-      "\'\n\006status\030\001 \001(\0132\027.hcg.internal.RpcStatus"
-      "\"$\n\024AllocateBlockRequest\022\014\n\004path\030\001 \001(\t\"~"
-      "\n\025AllocateBlockResponse\022\'\n\006status\030\001 \001(\0132"
-      "\027.hcg.internal.RpcStatus\022(\n\005block\030\002 \001(\0132"
-      "\031.hcg.internal.BlockHandle\022\022\n\nblock_size"
-      "\030\003 \001(\004\"H\n\030GetBlockLocationsRequest\022\014\n\004pa"
-      "th\030\001 \001(\t\022\016\n\006offset\030\002 \001(\004\022\016\n\006length\030\003 \001(\004"
-      "\"q\n\022BlockLocationProto\022(\n\005block\030\001 \001(\0132\031."
-      "hcg.internal.BlockHandle\022\016\n\006offset\030\002 \001(\004"
-      "\022\016\n\006length\030\003 \001(\004\022\021\n\tdatanodes\030\004 \003(\t\"v\n\031G"
-      "etBlockLocationsResponse\022\'\n\006status\030\001 \001(\013"
-      "2\027.hcg.internal.RpcStatus\0220\n\006blocks\030\002 \003("
-      "\0132 .hcg.internal.BlockLocationProto\"d\n\021W"
-      "riteBlockRequest\022(\n\005block\030\001 \001(\0132\031.hcg.in"
-      "ternal.BlockHandle\022\027\n\017offset_in_block\030\002 "
-      "\001(\004\022\014\n\004data\030\003 \001(\014\"T\n\022WriteBlockResponse\022"
-      "\'\n\006status\030\001 \001(\0132\027.hcg.internal.RpcStatus"
-      "\022\025\n\rbytes_written\030\002 \001(\004\"e\n\020ReadBlockRequ"
-      "est\022(\n\005block\030\001 \001(\0132\031.hcg.internal.BlockH"
-      "andle\022\027\n\017offset_in_block\030\002 \001(\004\022\016\n\006length"
-      "\030\003 \001(\004\"J\n\021ReadBlockResponse\022\'\n\006status\030\001 "
-      "\001(\0132\027.hcg.internal.RpcStatus\022\014\n\004data\030\002 \001"
-      "(\014\"\037\n\017CompleteRequest\022\014\n\004path\030\001 \001(\t\";\n\020C"
-      "ompleteResponse\022\'\n\006status\030\001 \001(\0132\027.hcg.in"
-      "ternal.RpcStatus*\312\001\n\020CreateFileStatus\022\031\n"
-      "\025CREATE_FILE_STATUS_OK\020\000\022(\n$CREATE_FILE_"
-      "STATUS_PERMISSION_DENIED\020\001\022%\n!CREATE_FIL"
-      "E_STATUS_ALREADY_EXISTS\020\002\022#\n\037CREATE_FILE"
-      "_STATUS_INVALID_PATH\020\003\022%\n!CREATE_FILE_ST"
-      "ATUS_INTERNAL_ERROR\020\0042\366\005\n\017InternalGatewa"
-      "y\022O\n\nCreateFile\022\037.hcg.internal.CreateFil"
-      "eRequest\032 .hcg.internal.CreateFileRespon"
-      "se\022R\n\013GetFileInfo\022 .hcg.internal.GetFile"
-      "InfoRequest\032!.hcg.internal.GetFileInfoRe"
-      "sponse\022O\n\nListStatus\022\037.hcg.internal.List"
-      "StatusRequest\032 .hcg.internal.ListStatusR"
-      "esponse\022C\n\006Delete\022\033.hcg.internal.DeleteR"
-      "equest\032\034.hcg.internal.DeleteResponse\022X\n\r"
-      "AllocateBlock\022\".hcg.internal.AllocateBlo"
-      "ckRequest\032#.hcg.internal.AllocateBlockRe"
-      "sponse\022d\n\021GetBlockLocations\022&.hcg.intern"
-      "al.GetBlockLocationsRequest\032\'.hcg.intern"
-      "al.GetBlockLocationsResponse\022O\n\nWriteBlo"
-      "ck\022\037.hcg.internal.WriteBlockRequest\032 .hc"
-      "g.internal.WriteBlockResponse\022L\n\tReadBlo"
-      "ck\022\036.hcg.internal.ReadBlockRequest\032\037.hcg"
-      ".internal.ReadBlockResponse\022I\n\010Complete\022"
-      "\035.hcg.internal.CompleteRequest\032\036.hcg.int"
-      "ernal.CompleteResponseB\003\200\001\001b\006proto3"
+      "\030\t \001(\004\022\023\n\013access_time\030\n \001(\004\"/\n\010FileType\022"
+      "\n\n\006IS_DIR\020\000\022\013\n\007IS_FILE\020\001\022\n\n\006YMLINK\020\002\";\n\014"
+      "MkdirRequest\022\014\n\004path\030\001 \001(\t\022\014\n\004mode\030\002 \001(\r"
+      "\022\017\n\007parents\030\003 \001(\010\"6\n\rMkdirResponse\022\016\n\006st"
+      "atus\030\001 \001(\005\022\025\n\rerror_message\030\002 \001(\t\"\202\001\n\021Cr"
+      "eateFileRequest\022\014\n\004path\030\001 \001(\t\022\014\n\004mode\030\002 "
+      "\001(\r\022\023\n\013replication\030\003 \001(\r\022\022\n\nblock_size\030\004"
+      " \001(\004\022\021\n\toverwrite\030\005 \001(\010\022\025\n\rcreate_parent"
+      "\030\006 \001(\010\"\346\001\n\022CreateFileResponse\022\'\n\006status\030"
+      "\001 \001(\0132\027.hcg.internal.RpcStatus\022(\n\006handle"
+      "\030\002 \001(\0132\030.hcg.internal.FileHandle\0221\n\nFile"
+      "Status\030\003 \001(\0132\035.hcg.internal.FileStatusPr"
+      "oto\0223\n\013status_code\030\004 \001(\0162\036.hcg.internal."
+      "CreateFileStatus\022\025\n\rerror_message\030\005 \001(\t\""
+      "\"\n\022GetFileInfoRequest\022\014\n\004path\030\001 \001(\t\"r\n\023G"
+      "etFileInfoResponse\022\'\n\006status\030\001 \001(\0132\027.hcg"
+      ".internal.RpcStatus\0222\n\013status_info\030\002 \001(\013"
+      "2\035.hcg.internal.FileStatusProto\"!\n\021ListS"
+      "tatusRequest\022\014\n\004path\030\001 \001(\t\"m\n\022ListStatus"
+      "Response\022\'\n\006status\030\001 \001(\0132\027.hcg.internal."
+      "RpcStatus\022.\n\007entries\030\002 \003(\0132\035.hcg.interna"
+      "l.FileStatusProto\"0\n\rDeleteRequest\022\014\n\004pa"
+      "th\030\001 \001(\t\022\021\n\trecursive\030\002 \001(\010\"9\n\016DeleteRes"
+      "ponse\022\'\n\006status\030\001 \001(\0132\027.hcg.internal.Rpc"
+      "Status\"$\n\024AllocateBlockRequest\022\014\n\004path\030\001"
+      " \001(\t\"~\n\025AllocateBlockResponse\022\'\n\006status\030"
+      "\001 \001(\0132\027.hcg.internal.RpcStatus\022(\n\005block\030"
+      "\002 \001(\0132\031.hcg.internal.BlockHandle\022\022\n\nbloc"
+      "k_size\030\003 \001(\004\"H\n\030GetBlockLocationsRequest"
+      "\022\014\n\004path\030\001 \001(\t\022\016\n\006offset\030\002 \001(\004\022\016\n\006length"
+      "\030\003 \001(\004\"q\n\022BlockLocationProto\022(\n\005block\030\001 "
+      "\001(\0132\031.hcg.internal.BlockHandle\022\016\n\006offset"
+      "\030\002 \001(\004\022\016\n\006length\030\003 \001(\004\022\021\n\tdatanodes\030\004 \003("
+      "\t\"v\n\031GetBlockLocationsResponse\022\'\n\006status"
+      "\030\001 \001(\0132\027.hcg.internal.RpcStatus\0220\n\006block"
+      "s\030\002 \003(\0132 .hcg.internal.BlockLocationProt"
+      "o\"d\n\021WriteBlockRequest\022(\n\005block\030\001 \001(\0132\031."
+      "hcg.internal.BlockHandle\022\027\n\017offset_in_bl"
+      "ock\030\002 \001(\004\022\014\n\004data\030\003 \001(\014\"T\n\022WriteBlockRes"
+      "ponse\022\'\n\006status\030\001 \001(\0132\027.hcg.internal.Rpc"
+      "Status\022\025\n\rbytes_written\030\002 \001(\004\"e\n\020ReadBlo"
+      "ckRequest\022(\n\005block\030\001 \001(\0132\031.hcg.internal."
+      "BlockHandle\022\027\n\017offset_in_block\030\002 \001(\004\022\016\n\006"
+      "length\030\003 \001(\004\"J\n\021ReadBlockResponse\022\'\n\006sta"
+      "tus\030\001 \001(\0132\027.hcg.internal.RpcStatus\022\014\n\004da"
+      "ta\030\002 \001(\014\"\037\n\017CompleteRequest\022\014\n\004path\030\001 \001("
+      "\t\";\n\020CompleteResponse\022\'\n\006status\030\001 \001(\0132\027."
+      "hcg.internal.RpcStatus*\312\001\n\020CreateFileSta"
+      "tus\022\031\n\025CREATE_FILE_STATUS_OK\020\000\022(\n$CREATE"
+      "_FILE_STATUS_PERMISSION_DENIED\020\001\022%\n!CREA"
+      "TE_FILE_STATUS_ALREADY_EXISTS\020\002\022#\n\037CREAT"
+      "E_FILE_STATUS_INVALID_PATH\020\003\022%\n!CREATE_F"
+      "ILE_STATUS_INTERNAL_ERROR\020\0042\366\005\n\017Internal"
+      "Gateway\022O\n\nCreateFile\022\037.hcg.internal.Cre"
+      "ateFileRequest\032 .hcg.internal.CreateFile"
+      "Response\022R\n\013GetFileInfo\022 .hcg.internal.G"
+      "etFileInfoRequest\032!.hcg.internal.GetFile"
+      "InfoResponse\022O\n\nListStatus\022\037.hcg.interna"
+      "l.ListStatusRequest\032 .hcg.internal.ListS"
+      "tatusResponse\022C\n\006Delete\022\033.hcg.internal.D"
+      "eleteRequest\032\034.hcg.internal.DeleteRespon"
+      "se\022X\n\rAllocateBlock\022\".hcg.internal.Alloc"
+      "ateBlockRequest\032#.hcg.internal.AllocateB"
+      "lockResponse\022d\n\021GetBlockLocations\022&.hcg."
+      "internal.GetBlockLocationsRequest\032\'.hcg."
+      "internal.GetBlockLocationsResponse\022O\n\nWr"
+      "iteBlock\022\037.hcg.internal.WriteBlockReques"
+      "t\032 .hcg.internal.WriteBlockResponse\022L\n\tR"
+      "eadBlock\022\036.hcg.internal.ReadBlockRequest"
+      "\032\037.hcg.internal.ReadBlockResponse\022I\n\010Com"
+      "plete\022\035.hcg.internal.CompleteRequest\032\036.h"
+      "cg.internal.CompleteResponseB\003\200\001\001b\006proto"
+      "3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 3075);
+      descriptor, 3241);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "gateway_internal.proto", &protobuf_RegisterTypes);
 }
@@ -865,9 +929,32 @@ struct StaticDescriptorInitializer {
 }  // namespace protobuf_gateway_5finternal_2eproto
 namespace hcg {
 namespace internal {
-const ::google::protobuf::EnumDescriptor* CreateFileStatus_descriptor() {
+const ::google::protobuf::EnumDescriptor* FileStatusProto_FileType_descriptor() {
   protobuf_gateway_5finternal_2eproto::protobuf_AssignDescriptorsOnce();
   return protobuf_gateway_5finternal_2eproto::file_level_enum_descriptors[0];
+}
+bool FileStatusProto_FileType_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+      return true;
+    default:
+      return false;
+  }
+}
+
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const FileStatusProto_FileType FileStatusProto::IS_DIR;
+const FileStatusProto_FileType FileStatusProto::IS_FILE;
+const FileStatusProto_FileType FileStatusProto::YMLINK;
+const FileStatusProto_FileType FileStatusProto::FileType_MIN;
+const FileStatusProto_FileType FileStatusProto::FileType_MAX;
+const int FileStatusProto::FileType_ARRAYSIZE;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+const ::google::protobuf::EnumDescriptor* CreateFileStatus_descriptor() {
+  protobuf_gateway_5finternal_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_gateway_5finternal_2eproto::file_level_enum_descriptors[1];
 }
 bool CreateFileStatus_IsValid(int value) {
   switch (value) {
@@ -2380,6 +2467,608 @@ void FileStatusProto::InternalSwap(FileStatusProto* other) {
 }
 
 ::google::protobuf::Metadata FileStatusProto::GetMetadata() const {
+  protobuf_gateway_5finternal_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_gateway_5finternal_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+
+// ===================================================================
+
+void MkdirRequest::InitAsDefaultInstance() {
+}
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int MkdirRequest::kPathFieldNumber;
+const int MkdirRequest::kModeFieldNumber;
+const int MkdirRequest::kParentsFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+MkdirRequest::MkdirRequest()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_gateway_5finternal_2eproto::scc_info_MkdirRequest.base);
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:hcg.internal.MkdirRequest)
+}
+MkdirRequest::MkdirRequest(const MkdirRequest& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  path_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.path().size() > 0) {
+    path_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.path_);
+  }
+  ::memcpy(&mode_, &from.mode_,
+    static_cast<size_t>(reinterpret_cast<char*>(&parents_) -
+    reinterpret_cast<char*>(&mode_)) + sizeof(parents_));
+  // @@protoc_insertion_point(copy_constructor:hcg.internal.MkdirRequest)
+}
+
+void MkdirRequest::SharedCtor() {
+  path_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  ::memset(&mode_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&parents_) -
+      reinterpret_cast<char*>(&mode_)) + sizeof(parents_));
+}
+
+MkdirRequest::~MkdirRequest() {
+  // @@protoc_insertion_point(destructor:hcg.internal.MkdirRequest)
+  SharedDtor();
+}
+
+void MkdirRequest::SharedDtor() {
+  path_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+void MkdirRequest::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const ::google::protobuf::Descriptor* MkdirRequest::descriptor() {
+  ::protobuf_gateway_5finternal_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_gateway_5finternal_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const MkdirRequest& MkdirRequest::default_instance() {
+  ::google::protobuf::internal::InitSCC(&protobuf_gateway_5finternal_2eproto::scc_info_MkdirRequest.base);
+  return *internal_default_instance();
+}
+
+
+void MkdirRequest::Clear() {
+// @@protoc_insertion_point(message_clear_start:hcg.internal.MkdirRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  path_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  ::memset(&mode_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&parents_) -
+      reinterpret_cast<char*>(&mode_)) + sizeof(parents_));
+  _internal_metadata_.Clear();
+}
+
+bool MkdirRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:hcg.internal.MkdirRequest)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // string path = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_path()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->path().data(), static_cast<int>(this->path().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "hcg.internal.MkdirRequest.path"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint32 mode = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                 input, &mode_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // bool parents = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   bool, ::google::protobuf::internal::WireFormatLite::TYPE_BOOL>(
+                 input, &parents_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:hcg.internal.MkdirRequest)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:hcg.internal.MkdirRequest)
+  return false;
+#undef DO_
+}
+
+void MkdirRequest::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:hcg.internal.MkdirRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string path = 1;
+  if (this->path().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->path().data(), static_cast<int>(this->path().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "hcg.internal.MkdirRequest.path");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      1, this->path(), output);
+  }
+
+  // uint32 mode = 2;
+  if (this->mode() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->mode(), output);
+  }
+
+  // bool parents = 3;
+  if (this->parents() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteBool(3, this->parents(), output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:hcg.internal.MkdirRequest)
+}
+
+::google::protobuf::uint8* MkdirRequest::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:hcg.internal.MkdirRequest)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string path = 1;
+  if (this->path().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->path().data(), static_cast<int>(this->path().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "hcg.internal.MkdirRequest.path");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->path(), target);
+  }
+
+  // uint32 mode = 2;
+  if (this->mode() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->mode(), target);
+  }
+
+  // bool parents = 3;
+  if (this->parents() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteBoolToArray(3, this->parents(), target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:hcg.internal.MkdirRequest)
+  return target;
+}
+
+size_t MkdirRequest::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:hcg.internal.MkdirRequest)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // string path = 1;
+  if (this->path().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->path());
+  }
+
+  // uint32 mode = 2;
+  if (this->mode() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        this->mode());
+  }
+
+  // bool parents = 3;
+  if (this->parents() != 0) {
+    total_size += 1 + 1;
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void MkdirRequest::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:hcg.internal.MkdirRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  const MkdirRequest* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const MkdirRequest>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:hcg.internal.MkdirRequest)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:hcg.internal.MkdirRequest)
+    MergeFrom(*source);
+  }
+}
+
+void MkdirRequest::MergeFrom(const MkdirRequest& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:hcg.internal.MkdirRequest)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.path().size() > 0) {
+
+    path_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.path_);
+  }
+  if (from.mode() != 0) {
+    set_mode(from.mode());
+  }
+  if (from.parents() != 0) {
+    set_parents(from.parents());
+  }
+}
+
+void MkdirRequest::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:hcg.internal.MkdirRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void MkdirRequest::CopyFrom(const MkdirRequest& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:hcg.internal.MkdirRequest)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool MkdirRequest::IsInitialized() const {
+  return true;
+}
+
+void MkdirRequest::Swap(MkdirRequest* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void MkdirRequest::InternalSwap(MkdirRequest* other) {
+  using std::swap;
+  path_.Swap(&other->path_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
+  swap(mode_, other->mode_);
+  swap(parents_, other->parents_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+}
+
+::google::protobuf::Metadata MkdirRequest::GetMetadata() const {
+  protobuf_gateway_5finternal_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_gateway_5finternal_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+
+// ===================================================================
+
+void MkdirResponse::InitAsDefaultInstance() {
+}
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int MkdirResponse::kStatusFieldNumber;
+const int MkdirResponse::kErrorMessageFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+MkdirResponse::MkdirResponse()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  ::google::protobuf::internal::InitSCC(
+      &protobuf_gateway_5finternal_2eproto::scc_info_MkdirResponse.base);
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:hcg.internal.MkdirResponse)
+}
+MkdirResponse::MkdirResponse(const MkdirResponse& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  error_message_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.error_message().size() > 0) {
+    error_message_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.error_message_);
+  }
+  status_ = from.status_;
+  // @@protoc_insertion_point(copy_constructor:hcg.internal.MkdirResponse)
+}
+
+void MkdirResponse::SharedCtor() {
+  error_message_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  status_ = 0;
+}
+
+MkdirResponse::~MkdirResponse() {
+  // @@protoc_insertion_point(destructor:hcg.internal.MkdirResponse)
+  SharedDtor();
+}
+
+void MkdirResponse::SharedDtor() {
+  error_message_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+void MkdirResponse::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const ::google::protobuf::Descriptor* MkdirResponse::descriptor() {
+  ::protobuf_gateway_5finternal_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_gateway_5finternal_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const MkdirResponse& MkdirResponse::default_instance() {
+  ::google::protobuf::internal::InitSCC(&protobuf_gateway_5finternal_2eproto::scc_info_MkdirResponse.base);
+  return *internal_default_instance();
+}
+
+
+void MkdirResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:hcg.internal.MkdirResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  error_message_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  status_ = 0;
+  _internal_metadata_.Clear();
+}
+
+bool MkdirResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:hcg.internal.MkdirResponse)
+  for (;;) {
+    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // int32 status = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &status_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // string error_message = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_error_message()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->error_message().data(), static_cast<int>(this->error_message().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "hcg.internal.MkdirResponse.error_message"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:hcg.internal.MkdirResponse)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:hcg.internal.MkdirResponse)
+  return false;
+#undef DO_
+}
+
+void MkdirResponse::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:hcg.internal.MkdirResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 status = 1;
+  if (this->status() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->status(), output);
+  }
+
+  // string error_message = 2;
+  if (this->error_message().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->error_message().data(), static_cast<int>(this->error_message().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "hcg.internal.MkdirResponse.error_message");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->error_message(), output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:hcg.internal.MkdirResponse)
+}
+
+::google::protobuf::uint8* MkdirResponse::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:hcg.internal.MkdirResponse)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 status = 1;
+  if (this->status() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->status(), target);
+  }
+
+  // string error_message = 2;
+  if (this->error_message().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->error_message().data(), static_cast<int>(this->error_message().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "hcg.internal.MkdirResponse.error_message");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->error_message(), target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:hcg.internal.MkdirResponse)
+  return target;
+}
+
+size_t MkdirResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:hcg.internal.MkdirResponse)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // string error_message = 2;
+  if (this->error_message().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->error_message());
+  }
+
+  // int32 status = 1;
+  if (this->status() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->status());
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void MkdirResponse::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:hcg.internal.MkdirResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  const MkdirResponse* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const MkdirResponse>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:hcg.internal.MkdirResponse)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:hcg.internal.MkdirResponse)
+    MergeFrom(*source);
+  }
+}
+
+void MkdirResponse::MergeFrom(const MkdirResponse& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:hcg.internal.MkdirResponse)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.error_message().size() > 0) {
+
+    error_message_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.error_message_);
+  }
+  if (from.status() != 0) {
+    set_status(from.status());
+  }
+}
+
+void MkdirResponse::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:hcg.internal.MkdirResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void MkdirResponse::CopyFrom(const MkdirResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:hcg.internal.MkdirResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool MkdirResponse::IsInitialized() const {
+  return true;
+}
+
+void MkdirResponse::Swap(MkdirResponse* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void MkdirResponse::InternalSwap(MkdirResponse* other) {
+  using std::swap;
+  error_message_.Swap(&other->error_message_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
+  swap(status_, other->status_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+}
+
+::google::protobuf::Metadata MkdirResponse::GetMetadata() const {
   protobuf_gateway_5finternal_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_gateway_5finternal_2eproto::file_level_metadata[kIndexInFileMessages];
 }
@@ -8301,6 +8990,12 @@ template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::hcg::internal::BlockHandle* Aren
 }
 template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::hcg::internal::FileStatusProto* Arena::CreateMaybeMessage< ::hcg::internal::FileStatusProto >(Arena* arena) {
   return Arena::CreateInternal< ::hcg::internal::FileStatusProto >(arena);
+}
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::hcg::internal::MkdirRequest* Arena::CreateMaybeMessage< ::hcg::internal::MkdirRequest >(Arena* arena) {
+  return Arena::CreateInternal< ::hcg::internal::MkdirRequest >(arena);
+}
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::hcg::internal::MkdirResponse* Arena::CreateMaybeMessage< ::hcg::internal::MkdirResponse >(Arena* arena) {
+  return Arena::CreateInternal< ::hcg::internal::MkdirResponse >(arena);
 }
 template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::hcg::internal::CreateFileRequest* Arena::CreateMaybeMessage< ::hcg::internal::CreateFileRequest >(Arena* arena) {
   return Arena::CreateInternal< ::hcg::internal::CreateFileRequest >(arena);
