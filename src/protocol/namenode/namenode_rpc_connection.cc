@@ -1,4 +1,4 @@
-#include "protocol/namenode/hdfs_rpc_connection.h"
+#include "protocol/namenode/namenode_rpc_connection.h"
 
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -25,16 +25,16 @@ using google::protobuf::io::CodedInputStream;
 using google::protobuf::io::CodedOutputStream;
 using google::protobuf::io::StringOutputStream;
 
-HdfsRpcConnection::HdfsRpcConnection(
+NameRpcConnection::NameRpcConnection(
     int fd,
     std::shared_ptr<IHdfsNamenodeService> service)
     : fd_(fd), service_(std::move(service)) {
-        log(LogLevel::DEBUG, "HdfsRpcConnection ctor this=%p, fd=%d", this, fd_);
+        log(LogLevel::DEBUG, "NameRpcConnection ctor this=%p, fd=%d", this, fd_);
 
-        // LOG_DEBUG("HdfsRpcConnection ctor this=%p, fd=%d", this, fd_);
+        // LOG_DEBUG("NameRpcConnection ctor this=%p, fd=%d", this, fd_);
     }
 
-HdfsRpcConnection::~HdfsRpcConnection() {
+NameRpcConnection::~NameRpcConnection() {
     if (fd_ >= 0) {
         ::shutdown(fd_, SHUT_RDWR);
         ::close(fd_);
@@ -42,7 +42,7 @@ HdfsRpcConnection::~HdfsRpcConnection() {
     }
 }
 
-void HdfsRpcConnection::serve() {
+void NameRpcConnection::serve() {
     // 1) 先做握手："hrpc" + version + service_class + auth_protocol
     if (!read_preamble()) {
         // 握手失败，直接关闭
@@ -57,7 +57,7 @@ void HdfsRpcConnection::serve() {
     }
 }
 
-bool HdfsRpcConnection::read_preamble() {
+bool NameRpcConnection::read_preamble() {
     // Hadoop RPC preamble: 4 bytes "hrpc" + 1 byte version + 1 byte service class + 1 byte auth protocol
     std::uint8_t preamble[7];
     if (!read_full(fd_, preamble, sizeof(preamble))) {
@@ -65,7 +65,7 @@ bool HdfsRpcConnection::read_preamble() {
     }
 
     if (std::memcmp(preamble, "hrpc", 4) != 0) {
-        std::cerr << "[HdfsRpcConnection] invalid magic in preamble\n";
+        std::cerr << "[NameRpcConnection] invalid magic in preamble\n";
         return false;
     }
 
@@ -77,16 +77,16 @@ bool HdfsRpcConnection::read_preamble() {
 
     // 这里只做最小约束：协议版本一般是 0x09，auth 只能是 NONE(0)
     if (auth_protocol != 0) {
-        std::cerr << "[HdfsRpcConnection] unsupported auth protocol=" << (int)auth_protocol << "\n";
+        std::cerr << "[NameRpcConnection] unsupported auth protocol=" << (int)auth_protocol << "\n";
         return false;
     }
 
     // version 不严格限制，先接受，后面如果需要可以根据版本做兼容处理
-    std::cerr << "[HdfsRpcConnection] preamble ok, version=" << (int)version << "\n";
+    std::cerr << "[NameRpcConnection] preamble ok, version=" << (int)version << "\n";
     return true;
 }
 
-bool HdfsRpcConnection::handle_one_call() {
+bool NameRpcConnection::handle_one_call() {
     // 1) 读 total_len + buf
     std::uint32_t net_len = 0;
     if (!read_full(fd_, &net_len, sizeof(net_len))) {
@@ -94,7 +94,7 @@ bool HdfsRpcConnection::handle_one_call() {
     }
     std::uint32_t total_len = ntohl(net_len);
     if (total_len == 0) {
-        std::cerr << "[HdfsRpcConnection] invalid packet length=0\n";
+        std::cerr << "[NameRpcConnection] invalid packet length=0\n";
         return false;
     }
 
@@ -111,12 +111,12 @@ bool HdfsRpcConnection::handle_one_call() {
     {
         std::uint32_t header_len = 0;
         if (!cis.ReadVarint32(&header_len)) {
-            std::cerr << "[HdfsRpcConnection] failed to read RpcRequestHeader length\n";
+            std::cerr << "[NameRpcConnection] failed to read RpcRequestHeader length\n";
             return false;
         }
         auto limit = cis.PushLimit(static_cast<int>(header_len));
         if (!rpc_header.ParseFromCodedStream(&cis)) {
-            std::cerr << "[HdfsRpcConnection] failed to parse RpcRequestHeader\n";
+            std::cerr << "[NameRpcConnection] failed to parse RpcRequestHeader\n";
             return false;
         }
         cis.PopLimit(limit);
@@ -130,12 +130,12 @@ bool HdfsRpcConnection::handle_one_call() {
         ::hadoop::common::IpcConnectionContextProto ctx;
         std::uint32_t ctx_len = 0;
         if (!cis.ReadVarint32(&ctx_len)) {
-            std::cerr << "[HdfsRpcConnection] failed to read IpcConnectionContext length\n";
+            std::cerr << "[NameRpcConnection] failed to read IpcConnectionContext length\n";
             return false;
         }
         auto limit = cis.PushLimit(static_cast<int>(ctx_len));
         if (!ctx.ParseFromCodedStream(&cis)) {
-            std::cerr << "[HdfsRpcConnection] failed to parse IpcConnectionContext\n";
+            std::cerr << "[NameRpcConnection] failed to parse IpcConnectionContext\n";
             return false;
         }
         cis.PopLimit(limit);
@@ -149,7 +149,7 @@ bool HdfsRpcConnection::handle_one_call() {
         }
 
         handshake_done_ = true;
-        std::cerr << "[HdfsRpcConnection] connection context ok, user=" << user_
+        std::cerr << "[NameRpcConnection] connection context ok, user=" << user_
                   << " protocol=" << protocol_name_ << "\n";
         return true;  // 握手完成即可
     }
@@ -159,12 +159,12 @@ bool HdfsRpcConnection::handle_one_call() {
     {
         std::uint32_t header_len = 0;
         if (!cis.ReadVarint32(&header_len)) {
-            std::cerr << "[HdfsRpcConnection] failed to read RequestHeader length\n";
+            std::cerr << "[NameRpcConnection] failed to read RequestHeader length\n";
             return false;
         }
         auto limit = cis.PushLimit(static_cast<int>(header_len));
         if (!req_header.ParseFromCodedStream(&cis)) {
-            std::cerr << "[HdfsRpcConnection] failed to parse RequestHeader\n";
+            std::cerr << "[NameRpcConnection] failed to parse RequestHeader\n";
             return false;
         }
         cis.PopLimit(limit);
@@ -175,13 +175,13 @@ bool HdfsRpcConnection::handle_one_call() {
     {
         std::uint32_t param_len = 0;
         if (!cis.ReadVarint32(&param_len)) {
-            std::cerr << "[HdfsRpcConnection] failed to read param length\n";
+            std::cerr << "[NameRpcConnection] failed to read param length\n";
             return false;
         }
         if (param_len > 0) {
             param_bytes.resize(param_len);
             if (!cis.ReadRaw(param_bytes.data(), param_len)) {
-                std::cerr << "[HdfsRpcConnection] failed to read param bytes\n";
+                std::cerr << "[NameRpcConnection] failed to read param bytes\n";
                 return false;
             }
         }
@@ -201,7 +201,7 @@ bool HdfsRpcConnection::handle_one_call() {
     } else {
         resp_header.set_status(::hadoop::common::RpcResponseHeaderProto::ERROR);
         resp_header.set_exceptionclassname("java.io.IOException");
-        resp_header.set_errormsg("Unimplemented or failed RPC method in HdfsRpcConnection::dispatch");
+        resp_header.set_errormsg("Unimplemented or failed RPC method in NameRpcConnection::dispatch");
         resp_header.set_errordetail(
             ::hadoop::common::RpcResponseHeaderProto::ERROR_APPLICATION);
     }
@@ -209,7 +209,7 @@ bool HdfsRpcConnection::handle_one_call() {
     // 7) 序列化 response： [len][RpcResponseHeader][RequestProto]
     std::string header_bytes;
     if (!resp_header.SerializeToString(&header_bytes)) {
-        std::cerr << "[HdfsRpcConnection] failed to serialize RpcResponseHeader\n";
+        std::cerr << "[NameRpcConnection] failed to serialize RpcResponseHeader\n";
         return false;
     }
 
@@ -240,7 +240,7 @@ bool HdfsRpcConnection::handle_one_call() {
     return true;
 }
 
-bool HdfsRpcConnection::dispatch(
+bool NameRpcConnection::dispatch(
     const ::hadoop::common::RpcRequestHeaderProto& rpc_header,
     const ::hadoop::common::RequestHeaderProto& req_header,
     const std::string& param_bytes,
@@ -261,11 +261,11 @@ bool HdfsRpcConnection::dispatch(
 
     // 目前只打算处理 ClientProtocol，其它协议直接报错
     if (proto_name != "org.apache.hadoop.hdfs.protocol.ClientProtocol") {
-        std::cerr << "[HdfsRpcConnection] unsupported protocol: " << proto_name << "\n";
+        std::cerr << "[NameRpcConnection] unsupported protocol: " << proto_name << "\n";
         return false;
     }
 
-    std::cerr << "[HdfsRpcConnection] callId=" << rpc_header.callid()
+    std::cerr << "[NameRpcConnection] callId=" << rpc_header.callid()
               << " method=" << method << "\n";
 
     // ======= 下面是具体方法的分发骨架 =======
@@ -349,14 +349,14 @@ bool HdfsRpcConnection::dispatch(
         return true;
 
     } else {
-        std::cerr << "[HdfsRpcConnection] unsupported method: " << method << "\n";
+        std::cerr << "[NameRpcConnection] unsupported method: " << method << "\n";
         return false;
     }
 }
 
 // ================ 工具函数：读 / 写完整缓冲区 =================
 
-bool HdfsRpcConnection::read_full(int fd, void* buf, size_t len) {
+bool NameRpcConnection::read_full(int fd, void* buf, size_t len) {
     std::uint8_t* p = static_cast<std::uint8_t*>(buf);
     size_t off = 0;
     while (off < len) {
@@ -369,7 +369,7 @@ bool HdfsRpcConnection::read_full(int fd, void* buf, size_t len) {
             if (errno == EINTR) {
                 continue;
             }
-            std::cerr << "[HdfsRpcConnection] read error: " << std::strerror(errno) << "\n";
+            std::cerr << "[NameRpcConnection] read error: " << std::strerror(errno) << "\n";
             return false;
         }
         off += static_cast<size_t>(n);
@@ -377,7 +377,7 @@ bool HdfsRpcConnection::read_full(int fd, void* buf, size_t len) {
     return true;
 }
 
-bool HdfsRpcConnection::write_full(int fd, const void* buf, size_t len) {
+bool NameRpcConnection::write_full(int fd, const void* buf, size_t len) {
     const std::uint8_t* p = static_cast<const std::uint8_t*>(buf);
     size_t off = 0;
     while (off < len) {
@@ -386,7 +386,7 @@ bool HdfsRpcConnection::write_full(int fd, const void* buf, size_t len) {
             if (n < 0 && errno == EINTR) {
                 continue;
             }
-            std::cerr << "[HdfsRpcConnection] write error: " << std::strerror(errno) << "\n";
+            std::cerr << "[NameRpcConnection] write error: " << std::strerror(errno) << "\n";
             return false;
         }
         off += static_cast<size_t>(n);

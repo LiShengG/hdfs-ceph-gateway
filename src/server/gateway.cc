@@ -31,14 +31,12 @@ int HdfsCephGateway::init() {
 
     // 3) 创建 InternalGatewayServiceImpl
     internal_service_ = std::make_shared<InternalGatewayServiceImpl>(ceph_, meta_store);
-
-    // 4) InternalRpcServer
     internal_rpc_server_ =
         std::make_unique<internal_rpc::InternalRpcServer>(internal_service_);
 
     // Stage 1: HDFS NN 服务实现（基于 internal_service_）
     hdfs_nn_svc_ = std::make_shared<HdfsNamenodeServiceImpl>(internal_service_);
-    hdfs_rpc_ = std::make_unique<HdfsRpcServer>(hdfs_nn_svc_);
+    hdfs_rpc_ = std::make_unique<NameRpcServer>(hdfs_nn_svc_);
 
     return 0;
 }

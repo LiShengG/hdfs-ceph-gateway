@@ -1,33 +1,32 @@
 #pragma once
 
+#include <atomic>
+#include <memory>
 #include <string>
-#include "core/namespace/namespace_service.h"
-#include "core/block/block_manager.h"
-#include "core/lease/lease_manager.h"
+#include <thread>
+#include <vector>
+
+#include "protocol/namenode/hdfs_namenode_service.h"
 
 namespace hcg {
 
-class NameNodeRpcServer {
+class NameRpcServer {
 public:
-    NameNodeRpcServer(INamespaceService* ns,
-                      IBlockManager* bm,
-                      ILeaseManager* lm);
+    NameRpcServer(std::shared_ptr<IHdfsNamenodeService> nn_service);
+    ~NameRpcServer();
 
     int start(const std::string& bind_addr, std::uint16_t port);
     int stop();
 
 private:
-    INamespaceService* ns_;
-    IBlockManager* bm_;
-    ILeaseManager* lm_;
+    std::shared_ptr<IHdfsNamenodeService> nn_service_;
+    int listen_fd_{-1};
+    std::atomic<bool> running_{false};
+    std::thread accept_thread_;
+    std::vector<std::thread> worker_threads_;
 
-    // TODO: RPC server 实现细节，比如监听 socket, thread pool
-
-    // 示例: create() 的 handler
-    void handle_create(/* Request */);
-    void handle_get_block_locations(/* Request */);
-    void handle_add_block(/* Request */);
-    void handle_complete(/* Request */);
+    void accept_loop();
+    void handle_client(int client_fd);
 };
 
 } // namespace hcg

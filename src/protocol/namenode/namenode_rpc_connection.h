@@ -10,10 +10,10 @@
 
 namespace hcg {
 
-class HdfsRpcConnection {
+class NameRpcConnection {
 public:
-    HdfsRpcConnection(int fd, std::shared_ptr<IHdfsNamenodeService> service);
-    ~HdfsRpcConnection();
+    NameRpcConnection(int fd, std::shared_ptr<IHdfsNamenodeService> service);
+    ~NameRpcConnection();
 
     void serve();  // 处理握手 + 多个 RPC 调用
 
