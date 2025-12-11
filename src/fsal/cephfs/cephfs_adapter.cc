@@ -20,7 +20,7 @@ CephFsAdapter::~CephFsAdapter() {
 std::string CephFsAdapter::full_path(const std::string& path) {
     // 简单拼：root_prefix + path
     if (path.empty() || path[0] != '/') {
-        // 你可以再细化错误处理
+        // 可以再细化错误处理
         return cfg_.root_prefix + "/" + path;
     }
     return cfg_.root_prefix + path;

@@ -11,7 +11,14 @@ public:
         return Status(code, msg);
     }
 
-    bool ok() const { return code_ == 0; }
+    static Status NotFound(const std::string& msg = "Not found") {
+        return Status(kNotFound, msg);
+    }
+    // 可选：暴露错误码常量，便于外部比较
+    static constexpr int kOk = 0;
+    static constexpr int kNotFound = -1; 
+
+    bool ok() const { return code_ == kOk; }
     int code() const { return code_; }
     const std::string& message() const { return msg_; }
 
@@ -24,7 +31,7 @@ public:
     }
 
 private:
-    int code_ {0};
+    int code_ {kOk};
     std::string msg_;
 
     Status() = default;

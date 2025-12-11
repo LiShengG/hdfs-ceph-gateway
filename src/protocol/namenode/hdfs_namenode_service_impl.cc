@@ -1,6 +1,6 @@
 #include "protocol/namenode/hdfs_namenode_service_impl.h"
 
-#include "common/logging.h" // 假设你有日志库
+#include "common/logging.h" // 假设有日志库
 
 namespace hcg {
 
@@ -264,7 +264,7 @@ void HdfsNamenodeServiceImpl::create(
                         // std::string&)
 
     // 对于 Create 阶段，我们先不返回 block 位置信息（locations），HDFS
-    // 客户端后续会走 addBlock 如果你已经实现 LocatedBlocks，可以在这里额外填
+    // 客户端后续会走 addBlock 如果已经实现 LocatedBlocks，可以在这里额外填
     // fs->mutable_locations()
 
     log(LogLevel::DEBUG,
@@ -276,20 +276,21 @@ void HdfsNamenodeServiceImpl::addBlock(
     const hadoop::hdfs::AddBlockRequestProto& req,
     hadoop::hdfs::AddBlockResponseProto& rsp) {
     // TODO: 实现 addBlock 功能（为文件分配新块）
-    // 1. 解析 req 获取文件路径、上次分配的块等
-    // 2. 调用 internal_->allocateBlock(...) 分配新块
-    // 3. 将新块信息设置到 rsp.mutable_block()
     log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::addBlock called (stub).");
     // rsp.mutable_block(); // 初始化块信息
+}
+
+void HdfsNamenodeServiceImpl::getBlockLocation(const hadoop::hdfs::GetBlockLocationsRequestProto& req,
+    hadoop::hdfs::GetBlockLocationsRequestProto& rsp) {
+    // TODO: 实现 getBlockLocation 功能
+    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::getBlockLocation called (stub).");
+    // rsp.mutable_block(); // 初始化块信息  
 }
 
 void HdfsNamenodeServiceImpl::complete(
     const hadoop::hdfs::CompleteRequestProto& req,
     hadoop::hdfs::CompleteResponseProto& rsp) {
     // TODO: 实现 complete 功能（关闭文件写入）
-    // 1. 解析 req 获取文件路径、最后一个块等
-    // 2. 调用 internal_->completeFile(...) 完成文件写入
-    // 3. 根据结果设置 rsp.set_result(true/false)
     log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::complete called (stub).");
     rsp.set_result(true); 
 }

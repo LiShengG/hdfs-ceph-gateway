@@ -16,7 +16,7 @@
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
-#include "common/logging.h" // 假设你有日志库
+#include "common/logging.h" // 假设有日志库
 
 namespace hcg {
 

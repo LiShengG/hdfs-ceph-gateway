@@ -28,6 +28,9 @@ public:
     void addBlock(const hadoop::hdfs::AddBlockRequestProto& req,
                   hadoop::hdfs::AddBlockResponseProto& rsp) override;
 
+    void getBlockLocation(const hadoop::hdfs::GetBlockLocationsRequestProto& req,
+                hadoop::hdfs::GetBlockLocationsRequestProto& rsp) override;
+
     void complete(const hadoop::hdfs::CompleteRequestProto& req,
                   hadoop::hdfs::CompleteResponseProto& rsp) override;
 

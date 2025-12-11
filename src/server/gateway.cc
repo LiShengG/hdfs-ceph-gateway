@@ -57,7 +57,7 @@ int HdfsCephGateway::start() {
         log(LogLevel::ERROR, "start internal RPC server failed rc=%d", rc);
         return rc;
     }
-    rc = hdfs_rpc_->start("0.0.0.0", 9000); // 这里端口你可以通过配置来
+    rc = hdfs_rpc_->start("0.0.0.0", 9000); // 这里端口可以通过配置来
     if (rc != 0) {
         log(LogLevel::ERROR, "start hdfs_rpc_ RPC server failed rc=%d", rc);
         return rc;

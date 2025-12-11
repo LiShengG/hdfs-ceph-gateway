@@ -289,7 +289,7 @@ namespace hcg
             }
 
             // 目录本身
-            // 你可以在 CephFsAdapter 里增加 rmdir 接口，这里先简单用 unlink
+            // 可以在 CephFsAdapter 里增加 rmdir 接口，这里先简单用 unlink
             rc = ceph_->unlink(path); // 如果使用 rmdir，请改成 ceph_->rmdir(path)
             if (rc < 0)
             {

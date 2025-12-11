@@ -184,7 +184,7 @@ message CompleteResponse {
 }
 
 // ---------- Internal 网关服务定义 ----------
-// 阶段0：你可以用自定义 TCP + length-prefix 调用这些 RPC
+// 阶段0：可以用自定义 TCP + length-prefix 调用这些 RPC
 // 也可以未来用 gRPC 的 C++ 插件生成 stub 来调用。
 
 service InternalGateway {

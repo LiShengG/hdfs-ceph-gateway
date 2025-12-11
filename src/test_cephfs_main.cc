@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
     (void)argc; (void)argv;
 
     hcg::CephFsConfig cfg;
-    // cfg.mon_hosts = "10.20.40.85";  // 换成你的 mon 地址
+    // cfg.mon_hosts = "10.20.40.85";  // 换成的 mon 地址
     cfg.mon_hosts = "v2:10.20.40.85:3300";
     cfg.user = "hdfs";             // 对应 ceph.client.hdfs
     cfg.keyring_path = "/etc/ceph/ceph.client.hdfs.keyring";
