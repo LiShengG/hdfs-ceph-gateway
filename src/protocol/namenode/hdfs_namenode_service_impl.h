@@ -29,7 +29,7 @@ public:
                   hadoop::hdfs::AddBlockResponseProto& rsp) override;
 
     void getBlockLocation(const hadoop::hdfs::GetBlockLocationsRequestProto& req,
-                hadoop::hdfs::GetBlockLocationsRequestProto& rsp) override;
+                hadoop::hdfs::GetBlockLocationsResponseProto& rsp);
 
     void complete(const hadoop::hdfs::CompleteRequestProto& req,
                   hadoop::hdfs::CompleteResponseProto& rsp) override;
@@ -44,6 +44,8 @@ public:
 
 private:
     std::shared_ptr<IInternalGatewayService> internal_;
+    std::string block_pool_id_ = "BP-1";         // 简单写死一个 BlockPoolId
+    std::string datanode_endpoint_;  
 };
 
 } // namespace hcg

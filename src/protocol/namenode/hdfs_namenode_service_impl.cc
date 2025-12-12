@@ -1,6 +1,77 @@
 #include "protocol/namenode/hdfs_namenode_service_impl.h"
 
-#include "common/logging.h" // 假设有日志库
+#include "common/logging.h" 
+#include <string>
+#include "common/types.h"              // FileId, BlockIndex, BlockId, make_block_id
+#include "common/status.h"
+#include "gateway_internal.pb.h"      // internal::*
+#include "ClientNamenodeProtocol.pb.h"
+#include "hdfs.pb.h"
+
+// HDFS 协议请求/响应
+using hadoop::hdfs::GetBlockLocationsRequestProto;
+using hadoop::hdfs::GetBlockLocationsResponseProto;
+using hadoop::hdfs::AddBlockRequestProto;
+using hadoop::hdfs::AddBlockResponseProto;
+
+// Block 相关
+using hadoop::hdfs::LocatedBlocksProto;
+using hadoop::hdfs::LocatedBlockProto;
+using hadoop::hdfs::ExtendedBlockProto;
+
+// DataNode 相关
+using hadoop::hdfs::DatanodeInfoProto;
+using hadoop::hdfs::DatanodeIDProto;
+
+// 存储与安全
+using hadoop::hdfs::StorageTypeProto;
+using hadoop::common::TokenProto;
+
+namespace {
+
+inline bool is_rpc_status_ok(const ::hcg::internal::RpcStatus& st) {
+    return st.code() == 0;
+}
+
+inline void split_host_port(const std::string& ep,
+                            std::string& host,
+                            std::uint32_t& port) {
+    auto pos = ep.find(':');
+    if (pos == std::string::npos) {
+        host = ep;
+        port = 0;
+        return;
+    }
+    host = ep.substr(0, pos);
+    port = static_cast<std::uint32_t>(std::stoul(ep.substr(pos + 1)));
+}
+
+// 把 "host:port" 转成 HDFS 的 DatanodeInfoProto
+inline void fill_datanode_info(const std::string& endpoint,
+                               DatanodeInfoProto* dn) {
+    std::string host;
+    std::uint32_t port = 0;
+    split_host_port(endpoint, host, port);
+
+    dn->mutable_id()->set_ipaddr(host);
+    dn->mutable_id()->set_hostname(host);
+    dn->mutable_id()->set_datanodeuuid(host);
+    dn->mutable_id()->set_xferport(port);
+    dn->mutable_id()->set_infoport(0);
+    dn->mutable_id()->set_ipcport(0);
+
+    // dn->set_capacity(0);
+    // dn->set_dfsused(0);
+    // dn->set_remaining(0);
+    // dn->set_blockpoolused(0);
+    // dn->set_lastupdate(0);
+    // dn->set_location("");           // rack 信息，先留空
+    // dn->set_nondfsused(0);
+    // dn->set_adminstate(hadoop::hdfs::DatanodeInfoProto::NORMAL);
+
+}
+
+} // anonymous namespace
 
 namespace hcg {
 
@@ -273,18 +344,195 @@ void HdfsNamenodeServiceImpl::create(
 }
 
 void HdfsNamenodeServiceImpl::addBlock(
-    const hadoop::hdfs::AddBlockRequestProto& req,
-    hadoop::hdfs::AddBlockResponseProto& rsp) {
-    // TODO: 实现 addBlock 功能（为文件分配新块）
-    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::addBlock called (stub).");
-    // rsp.mutable_block(); // 初始化块信息
+    const AddBlockRequestProto& req,
+    AddBlockResponseProto& rsp) {
+    const std::string path = req.src();
+    log(LogLevel::DEBUG,
+        "HdfsNamenodeServiceImpl::addBlock src=%s", path.c_str());
+
+    // 1. 调用 internal AllocateBlock，分配一个新的逻辑块
+    internal::AllocateBlockRequest ireq;
+    internal::AllocateBlockResponse irsp;
+
+    ireq.set_path(path);
+
+    internal_->AllocateBlock(ireq, irsp);
+
+    if (!is_rpc_status_ok(irsp.status())) {
+        log(LogLevel::ERROR,
+            "addBlock: internal AllocateBlock failed src=%s code=%d msg=%s",
+            path.c_str(),
+            irsp.status().code(),
+            irsp.status().message().c_str());
+
+        // TODO：这里可以按需要设置 RemoteException 到 rsp，目前先直接返回
+        return;
+    }
+
+    // 2. 从 internal 的 BlockHandle 中取 file_id / index / path
+    const internal::BlockHandle& bh = irsp.block();
+    const std::uint64_t file_id     = bh.file_id();
+    const std::uint64_t block_index = bh.index();
+    const std::uint64_t block_size  = irsp.block_size();
+
+    const std::uint64_t block_len    = 0;
+    const std::uint64_t block_offset = block_index * block_size;
+
+    // 3. 计算 HDFS 视角的 blockId
+    hcg::BlockId bid = hcg::make_block_id(file_id, block_index);
+
+    // 4. 构造 LocatedBlockProto（AddBlockResponse.block）
+    LocatedBlockProto* lb = rsp.mutable_block();
+
+    // 4.1 ExtendedBlockProto（必填）
+    ExtendedBlockProto* eb = lb->mutable_b();
+    eb->set_poolid(block_pool_id_);                
+    eb->set_blockid(static_cast<std::uint64_t>(bid));
+    eb->set_generationstamp(1);                     // Stage 2 简化：统一写 1
+    eb->set_numbytes(block_len);                    // 当前块有效长度，初始为 0
+
+    // 4.2 offset：块在整个文件中的起始偏移（必填）
+    lb->set_offset(block_offset);
+
+    // 4.3 locs：至少要有一个 DatanodeInfoProto（当前网关作为虚拟 DN）
+    if (!datanode_endpoint_.empty()) {
+        DatanodeInfoProto* dn = lb->add_locs();
+        fill_datanode_info(datanode_endpoint_, dn);
+    }
+
+    // 4.4 corrupt：Stage 2 暂不做坏块检测，统一认为 false（必填）
+    lb->set_corrupt(false);
+
+    // 4.5 blockToken：必填，但 Stage 2 可给一个“空 token”
+    TokenProto* tok = lb->mutable_blocktoken();
+    tok->set_identifier("");      // 空 bytes
+    tok->set_password("");        // 空 bytes
+    tok->set_kind("");            // 或可填 "HDFS_BLOCK_TOKEN"
+    tok->set_service("");         // 先留空
+
+    // 4.6 isCached：可选，最小策略下与 locs 对齐，每个 false 即可
+    // 这里只分配一个 loc，则添加一个 false
+    if (lb->locs_size() > 0) {
+        lb->add_iscached(false);
+    }
+
+    // 4.7 storageTypes：建议与 locs 对齐，每个填 DISK
+    if (lb->locs_size() > 0) {
+        lb->add_storagetypes(StorageTypeProto::DISK);
+    }
+
+    // 4.8 storageIDs / blockIndices / blockTokens 都是 EC/多介质相关，暂不填
 }
 
-void HdfsNamenodeServiceImpl::getBlockLocation(const hadoop::hdfs::GetBlockLocationsRequestProto& req,
-    hadoop::hdfs::GetBlockLocationsRequestProto& rsp) {
-    // TODO: 实现 getBlockLocation 功能
-    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::getBlockLocation called (stub).");
-    // rsp.mutable_block(); // 初始化块信息  
+void HdfsNamenodeServiceImpl::getBlockLocation(
+    const GetBlockLocationsRequestProto& req,
+    GetBlockLocationsResponseProto& rsp) {
+    const std::string path      = req.src();
+    const std::uint64_t offset  = req.offset();
+    const std::uint64_t length  = req.length();
+
+    log(LogLevel::DEBUG,
+        "HdfsNamenodeServiceImpl::getBlockLocation src=%s offset=%lu length=%lu",
+        path.c_str(),
+        static_cast<unsigned long>(offset),
+        static_cast<unsigned long>(length));
+
+    // 1. 转成 internal::GetBlockLocations 请求
+    internal::GetBlockLocationsRequest ireq;
+    internal::GetBlockLocationsResponse irsp;
+
+    ireq.set_path(path);
+    ireq.set_offset(offset);
+    ireq.set_length(length);
+
+    internal_->GetBlockLocations(ireq, irsp);
+
+    // 2. 检查 internal status
+    if (!is_rpc_status_ok(irsp.status())) {
+        log(LogLevel::ERROR,
+            "getBlockLocation: internal GetBlockLocations failed src=%s code=%d msg=%s",
+            path.c_str(),
+            irsp.status().code(),
+            irsp.status().message().c_str());
+
+        // 最简单的处理：不设置 locations，客户端会得到 null，等价于 "没有块/文件不存在"
+        return;
+    }
+
+    // 3. 构造 LocatedBlocksProto（GetBlockLocationsResponse.locations）
+    LocatedBlocksProto* lbs = rsp.mutable_locations();
+    std::uint64_t file_len = 0;
+    file_len = irsp.file_length();
+    lbs->set_filelength(file_len);
+
+    // underConstruction（必填）：Stage 2 统一当成已完成文件
+    lbs->set_underconstruction(false);
+
+    // isLastBlockComplete（必填）：已完成文件统一填 true
+    lbs->set_islastblockcomplete(true);
+
+    // lastBlock / fileEncryptionInfo / ecPolicy 暂不填
+
+    // 4. 把 internal::BlockLocationProto -> LocatedBlockProto
+    for (int i = 0; i < irsp.blocks_size(); ++i) {
+        const internal::BlockLocationProto& bloc = irsp.blocks(i);
+        const internal::BlockHandle& bh          = bloc.block();
+
+        const std::uint64_t file_id     = bh.file_id();
+        const std::uint64_t block_index = bh.index();
+        const std::uint64_t blk_offset  = bloc.offset();
+        const std::uint64_t blk_length  = bloc.length();
+
+        // 计算逻辑 BlockId（HDFS 视角）
+        hcg::BlockId bid = hcg::make_block_id(file_id, block_index);
+
+        LocatedBlockProto* lb = lbs->add_blocks();
+
+        // 4.1 ExtendedBlockProto（必填）
+        ExtendedBlockProto* eb = lb->mutable_b();
+        eb->set_poolid(block_pool_id_);                     // 例如 "BP-1"
+        eb->set_blockid(static_cast<std::uint64_t>(bid));
+        eb->set_generationstamp(1);                         // Stage 2 简化：统一写 1
+        eb->set_numbytes(blk_length);                       // 当前块有效长度
+
+        // 4.2 offset（必填）：块在整个文件中的起始偏移
+        lb->set_offset(blk_offset);
+
+        // 4.3 locs + isCached + storageTypes
+        //
+        // 最小填充策略：
+        //   - locs 至少有一个 DatanodeInfoProto
+        //   - isCached 与 locs 数量对齐，每个 false
+        //   - storageTypes 与 locs 数量对齐，每个 DISK
+        for (int j = 0; j < bloc.datanodes_size(); ++j) {
+            const std::string& ep = bloc.datanodes(j);
+
+            DatanodeInfoProto* dn = lb->add_locs();
+            fill_datanode_info(ep, dn);  // 使用和 addBlock 相同的 helper
+
+            // isCached：对应这个 location 不是 cache
+            lb->add_iscached(false);
+
+            // storageType：先简单认为都是磁盘
+            lb->add_storagetypes(StorageTypeProto::DISK);
+        }
+
+        // 4.4 corrupt（必填）：Stage 2 不做坏块检测，统一认为 false
+        lb->set_corrupt(false);
+
+        // 4.5 blockToken（必填）：未启用安全，给一个“空 token”即可
+        TokenProto* tok = lb->mutable_blocktoken();
+        tok->set_identifier("");   // 空 bytes
+        tok->set_password("");     // 空 bytes
+        tok->set_kind("");         // 或 "HDFS_BLOCK_TOKEN"，目前没用
+        tok->set_service("");      // 先留空
+
+        // 4.6 storageIDs / blockIndices / blockTokens
+        // 这些主要用于多介质/EC 的场景，此处按最小策略保持空即可：
+        // - storageIDs 留空
+        // - blockIndices 不填
+        // - blockTokens 不填
+    }
 }
 
 void HdfsNamenodeServiceImpl::complete(

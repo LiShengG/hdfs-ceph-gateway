@@ -273,7 +273,6 @@ bool NameRpcConnection::dispatch(
     if (method == "mkdirs") {
         ::hadoop::hdfs::MkdirsRequestProto req;
         req.ParseFromString(param_bytes);
-        
         ::hadoop::hdfs::MkdirsResponseProto rsp;
         service_->mkdirs(req, rsp);
         
@@ -334,16 +333,27 @@ bool NameRpcConnection::dispatch(
         return true;
 
     } else if (method == "addBlock") {
-        // TODO:
-        // ::hadoop::hdfs::AddBlockRequestProto req;
-        // ::hadoop::hdfs::AddBlockResponseProto rsp;
-        // ...
-        return false;
+        ::hadoop::hdfs::AddBlockRequestProto req;
+        ::hadoop::hdfs::AddBlockResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->addBlock(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
 
-    } else if (method == "complete") {
-        TODO:
+    }  else if (method == "getBlockLocation") {
+        ::hadoop::hdfs::GetBlockLocationsRequestProto req;
+        ::hadoop::hdfs::GetBlockLocationsResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->getBlockLocation(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
+
+    }  
+    else if (method == "complete") {
+        // TODO:
         ::hadoop::hdfs::CompleteRequestProto req;
         ::hadoop::hdfs::CompleteResponseProto rsp;
+        req.ParseFromString(param_bytes);
         service_->complete(req, rsp);
         rsp.SerializeToString(&out_response_bytes);
         return true;

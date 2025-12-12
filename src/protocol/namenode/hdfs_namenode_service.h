@@ -34,7 +34,7 @@ public:
                           hadoop::hdfs::AddBlockResponseProto& rsp) = 0;
 
     virtual void getBlockLocation(const hadoop::hdfs::GetBlockLocationsRequestProto& req,
-                        hadoop::hdfs::GetBlockLocationsRequestProto& rsp) = 0;
+                        hadoop::hdfs::GetBlockLocationsResponseProto& rsp) = 0;
 
     virtual void complete(const hadoop::hdfs::CompleteRequestProto& req,
                           hadoop::hdfs::CompleteResponseProto& rsp) = 0;
