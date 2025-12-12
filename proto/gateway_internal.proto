@@ -147,6 +147,8 @@ message BlockLocationProto {
 message GetBlockLocationsResponse {
   RpcStatus              status = 1;
   repeated BlockLocationProto blocks = 2;
+  uint64 file_length = 3;  
+  uint64 block_size  = 4;  
 }
 
 // ---------- WriteBlock / ReadBlock ----------

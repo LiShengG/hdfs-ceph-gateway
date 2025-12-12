@@ -707,6 +707,8 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::GetBlockLocationsResponse, status_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::GetBlockLocationsResponse, blocks_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::GetBlockLocationsResponse, file_length_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::GetBlockLocationsResponse, block_size_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::hcg::internal::WriteBlockRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -770,12 +772,12 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROT
   { 126, -1, sizeof(::hcg::internal::GetBlockLocationsRequest)},
   { 134, -1, sizeof(::hcg::internal::BlockLocationProto)},
   { 143, -1, sizeof(::hcg::internal::GetBlockLocationsResponse)},
-  { 150, -1, sizeof(::hcg::internal::WriteBlockRequest)},
-  { 158, -1, sizeof(::hcg::internal::WriteBlockResponse)},
-  { 165, -1, sizeof(::hcg::internal::ReadBlockRequest)},
-  { 173, -1, sizeof(::hcg::internal::ReadBlockResponse)},
-  { 180, -1, sizeof(::hcg::internal::CompleteRequest)},
-  { 186, -1, sizeof(::hcg::internal::CompleteResponse)},
+  { 152, -1, sizeof(::hcg::internal::WriteBlockRequest)},
+  { 160, -1, sizeof(::hcg::internal::WriteBlockResponse)},
+  { 167, -1, sizeof(::hcg::internal::ReadBlockRequest)},
+  { 175, -1, sizeof(::hcg::internal::ReadBlockResponse)},
+  { 182, -1, sizeof(::hcg::internal::CompleteRequest)},
+  { 188, -1, sizeof(::hcg::internal::CompleteResponse)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -869,49 +871,50 @@ void AddDescriptorsImpl() {
       "\030\003 \001(\004\"q\n\022BlockLocationProto\022(\n\005block\030\001 "
       "\001(\0132\031.hcg.internal.BlockHandle\022\016\n\006offset"
       "\030\002 \001(\004\022\016\n\006length\030\003 \001(\004\022\021\n\tdatanodes\030\004 \003("
-      "\t\"v\n\031GetBlockLocationsResponse\022\'\n\006status"
-      "\030\001 \001(\0132\027.hcg.internal.RpcStatus\0220\n\006block"
-      "s\030\002 \003(\0132 .hcg.internal.BlockLocationProt"
-      "o\"d\n\021WriteBlockRequest\022(\n\005block\030\001 \001(\0132\031."
-      "hcg.internal.BlockHandle\022\027\n\017offset_in_bl"
-      "ock\030\002 \001(\004\022\014\n\004data\030\003 \001(\014\"T\n\022WriteBlockRes"
-      "ponse\022\'\n\006status\030\001 \001(\0132\027.hcg.internal.Rpc"
-      "Status\022\025\n\rbytes_written\030\002 \001(\004\"e\n\020ReadBlo"
-      "ckRequest\022(\n\005block\030\001 \001(\0132\031.hcg.internal."
-      "BlockHandle\022\027\n\017offset_in_block\030\002 \001(\004\022\016\n\006"
-      "length\030\003 \001(\004\"J\n\021ReadBlockResponse\022\'\n\006sta"
-      "tus\030\001 \001(\0132\027.hcg.internal.RpcStatus\022\014\n\004da"
-      "ta\030\002 \001(\014\"\037\n\017CompleteRequest\022\014\n\004path\030\001 \001("
-      "\t\";\n\020CompleteResponse\022\'\n\006status\030\001 \001(\0132\027."
-      "hcg.internal.RpcStatus*\312\001\n\020CreateFileSta"
-      "tus\022\031\n\025CREATE_FILE_STATUS_OK\020\000\022(\n$CREATE"
-      "_FILE_STATUS_PERMISSION_DENIED\020\001\022%\n!CREA"
-      "TE_FILE_STATUS_ALREADY_EXISTS\020\002\022#\n\037CREAT"
-      "E_FILE_STATUS_INVALID_PATH\020\003\022%\n!CREATE_F"
-      "ILE_STATUS_INTERNAL_ERROR\020\0042\366\005\n\017Internal"
-      "Gateway\022O\n\nCreateFile\022\037.hcg.internal.Cre"
-      "ateFileRequest\032 .hcg.internal.CreateFile"
-      "Response\022R\n\013GetFileInfo\022 .hcg.internal.G"
-      "etFileInfoRequest\032!.hcg.internal.GetFile"
-      "InfoResponse\022O\n\nListStatus\022\037.hcg.interna"
-      "l.ListStatusRequest\032 .hcg.internal.ListS"
-      "tatusResponse\022C\n\006Delete\022\033.hcg.internal.D"
-      "eleteRequest\032\034.hcg.internal.DeleteRespon"
-      "se\022X\n\rAllocateBlock\022\".hcg.internal.Alloc"
-      "ateBlockRequest\032#.hcg.internal.AllocateB"
-      "lockResponse\022d\n\021GetBlockLocations\022&.hcg."
-      "internal.GetBlockLocationsRequest\032\'.hcg."
-      "internal.GetBlockLocationsResponse\022O\n\nWr"
-      "iteBlock\022\037.hcg.internal.WriteBlockReques"
-      "t\032 .hcg.internal.WriteBlockResponse\022L\n\tR"
-      "eadBlock\022\036.hcg.internal.ReadBlockRequest"
-      "\032\037.hcg.internal.ReadBlockResponse\022I\n\010Com"
-      "plete\022\035.hcg.internal.CompleteRequest\032\036.h"
-      "cg.internal.CompleteResponseB\003\200\001\001b\006proto"
-      "3"
+      "\t\"\237\001\n\031GetBlockLocationsResponse\022\'\n\006statu"
+      "s\030\001 \001(\0132\027.hcg.internal.RpcStatus\0220\n\006bloc"
+      "ks\030\002 \003(\0132 .hcg.internal.BlockLocationPro"
+      "to\022\023\n\013file_length\030\003 \001(\004\022\022\n\nblock_size\030\004 "
+      "\001(\004\"d\n\021WriteBlockRequest\022(\n\005block\030\001 \001(\0132"
+      "\031.hcg.internal.BlockHandle\022\027\n\017offset_in_"
+      "block\030\002 \001(\004\022\014\n\004data\030\003 \001(\014\"T\n\022WriteBlockR"
+      "esponse\022\'\n\006status\030\001 \001(\0132\027.hcg.internal.R"
+      "pcStatus\022\025\n\rbytes_written\030\002 \001(\004\"e\n\020ReadB"
+      "lockRequest\022(\n\005block\030\001 \001(\0132\031.hcg.interna"
+      "l.BlockHandle\022\027\n\017offset_in_block\030\002 \001(\004\022\016"
+      "\n\006length\030\003 \001(\004\"J\n\021ReadBlockResponse\022\'\n\006s"
+      "tatus\030\001 \001(\0132\027.hcg.internal.RpcStatus\022\014\n\004"
+      "data\030\002 \001(\014\"\037\n\017CompleteRequest\022\014\n\004path\030\001 "
+      "\001(\t\";\n\020CompleteResponse\022\'\n\006status\030\001 \001(\0132"
+      "\027.hcg.internal.RpcStatus*\312\001\n\020CreateFileS"
+      "tatus\022\031\n\025CREATE_FILE_STATUS_OK\020\000\022(\n$CREA"
+      "TE_FILE_STATUS_PERMISSION_DENIED\020\001\022%\n!CR"
+      "EATE_FILE_STATUS_ALREADY_EXISTS\020\002\022#\n\037CRE"
+      "ATE_FILE_STATUS_INVALID_PATH\020\003\022%\n!CREATE"
+      "_FILE_STATUS_INTERNAL_ERROR\020\0042\366\005\n\017Intern"
+      "alGateway\022O\n\nCreateFile\022\037.hcg.internal.C"
+      "reateFileRequest\032 .hcg.internal.CreateFi"
+      "leResponse\022R\n\013GetFileInfo\022 .hcg.internal"
+      ".GetFileInfoRequest\032!.hcg.internal.GetFi"
+      "leInfoResponse\022O\n\nListStatus\022\037.hcg.inter"
+      "nal.ListStatusRequest\032 .hcg.internal.Lis"
+      "tStatusResponse\022C\n\006Delete\022\033.hcg.internal"
+      ".DeleteRequest\032\034.hcg.internal.DeleteResp"
+      "onse\022X\n\rAllocateBlock\022\".hcg.internal.All"
+      "ocateBlockRequest\032#.hcg.internal.Allocat"
+      "eBlockResponse\022d\n\021GetBlockLocations\022&.hc"
+      "g.internal.GetBlockLocationsRequest\032\'.hc"
+      "g.internal.GetBlockLocationsResponse\022O\n\n"
+      "WriteBlock\022\037.hcg.internal.WriteBlockRequ"
+      "est\032 .hcg.internal.WriteBlockResponse\022L\n"
+      "\tReadBlock\022\036.hcg.internal.ReadBlockReque"
+      "st\032\037.hcg.internal.ReadBlockResponse\022I\n\010C"
+      "omplete\022\035.hcg.internal.CompleteRequest\032\036"
+      ".hcg.internal.CompleteResponseB\003\200\001\001b\006pro"
+      "to3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 3241);
+      descriptor, 3283);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "gateway_internal.proto", &protobuf_RegisterTypes);
 }
@@ -6755,6 +6758,8 @@ void GetBlockLocationsResponse::InitAsDefaultInstance() {
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int GetBlockLocationsResponse::kStatusFieldNumber;
 const int GetBlockLocationsResponse::kBlocksFieldNumber;
+const int GetBlockLocationsResponse::kFileLengthFieldNumber;
+const int GetBlockLocationsResponse::kBlockSizeFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 GetBlockLocationsResponse::GetBlockLocationsResponse()
@@ -6774,11 +6779,16 @@ GetBlockLocationsResponse::GetBlockLocationsResponse(const GetBlockLocationsResp
   } else {
     status_ = NULL;
   }
+  ::memcpy(&file_length_, &from.file_length_,
+    static_cast<size_t>(reinterpret_cast<char*>(&block_size_) -
+    reinterpret_cast<char*>(&file_length_)) + sizeof(block_size_));
   // @@protoc_insertion_point(copy_constructor:hcg.internal.GetBlockLocationsResponse)
 }
 
 void GetBlockLocationsResponse::SharedCtor() {
-  status_ = NULL;
+  ::memset(&status_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&block_size_) -
+      reinterpret_cast<char*>(&status_)) + sizeof(block_size_));
 }
 
 GetBlockLocationsResponse::~GetBlockLocationsResponse() {
@@ -6815,6 +6825,9 @@ void GetBlockLocationsResponse::Clear() {
     delete status_;
   }
   status_ = NULL;
+  ::memset(&file_length_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&block_size_) -
+      reinterpret_cast<char*>(&file_length_)) + sizeof(block_size_));
   _internal_metadata_.Clear();
 }
 
@@ -6846,6 +6859,34 @@ bool GetBlockLocationsResponse::MergePartialFromCodedStream(
             static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
                 input, add_blocks()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint64 file_length = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(24u /* 24 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &file_length_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // uint64 block_size = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &block_size_)));
         } else {
           goto handle_unusual;
         }
@@ -6893,6 +6934,16 @@ void GetBlockLocationsResponse::SerializeWithCachedSizes(
       output);
   }
 
+  // uint64 file_length = 3;
+  if (this->file_length() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->file_length(), output);
+  }
+
+  // uint64 block_size = 4;
+  if (this->block_size() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->block_size(), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -6920,6 +6971,16 @@ void GetBlockLocationsResponse::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageToArray(
         2, this->blocks(static_cast<int>(i)), deterministic, target);
+  }
+
+  // uint64 file_length = 3;
+  if (this->file_length() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->file_length(), target);
+  }
+
+  // uint64 block_size = 4;
+  if (this->block_size() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->block_size(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -6957,6 +7018,20 @@ size_t GetBlockLocationsResponse::ByteSizeLong() const {
         *status_);
   }
 
+  // uint64 file_length = 3;
+  if (this->file_length() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->file_length());
+  }
+
+  // uint64 block_size = 4;
+  if (this->block_size() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::UInt64Size(
+        this->block_size());
+  }
+
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   SetCachedSize(cached_size);
   return total_size;
@@ -6988,6 +7063,12 @@ void GetBlockLocationsResponse::MergeFrom(const GetBlockLocationsResponse& from)
   if (from.has_status()) {
     mutable_status()->::hcg::internal::RpcStatus::MergeFrom(from.status());
   }
+  if (from.file_length() != 0) {
+    set_file_length(from.file_length());
+  }
+  if (from.block_size() != 0) {
+    set_block_size(from.block_size());
+  }
 }
 
 void GetBlockLocationsResponse::CopyFrom(const ::google::protobuf::Message& from) {
@@ -7016,6 +7097,8 @@ void GetBlockLocationsResponse::InternalSwap(GetBlockLocationsResponse* other) {
   using std::swap;
   CastToBase(&blocks_)->InternalSwap(CastToBase(&other->blocks_));
   swap(status_, other->status_);
+  swap(file_length_, other->file_length_);
+  swap(block_size_, other->block_size_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
 }
 

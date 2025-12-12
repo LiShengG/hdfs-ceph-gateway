@@ -4,13 +4,15 @@
 #include "fsal/cephfs/cephfs_adapter.h"
 #include "meta/metadata_store.h"
 #include "meta/xattr_metadata_store.h"
+#include "core/block/block_manager.h"
 
 namespace hcg {
 
 class InternalGatewayServiceImpl : public IInternalGatewayService {
 public:
     InternalGatewayServiceImpl(std::shared_ptr<CephFsAdapter> ceph,
-                               std::shared_ptr<IMetadataStore> meta_store);
+                               std::shared_ptr<IMetadataStore> meta_store,
+                               std::shared_ptr<BlockManager> block_mgr);
 
     // RPC 实现
     void MakeDir(const internal::MkdirRequest& req,
@@ -46,6 +48,7 @@ public:
 private:
     std::shared_ptr<CephFsAdapter> ceph_;
     std::shared_ptr<IMetadataStore> meta_store_;
+    std::shared_ptr<BlockManager> block_mgr_;
 
     // 工具方法
     void set_status_ok(internal::RpcStatus* st);

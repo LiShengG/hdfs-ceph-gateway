@@ -1,6 +1,7 @@
 #pragma once
 #include "common/types.h"
 #include "meta/metadata_store.h"
+#include "meta/xattr_metadata_store.h"
 
 #include <mutex>
 #include <unordered_map>
@@ -47,7 +48,7 @@ public:
 
 class BlockManager : public IBlockManager {
 public:
-    BlockManager(IMetadataStore* meta, std::string datanode_endpoint);
+    BlockManager(std::shared_ptr<IMetadataStore> meta, std::string datanode_endpoint);
 
     Status get_block_locations(const std::string& path,
                                std::uint64_t start,
@@ -66,7 +67,7 @@ public:
                          std::uint64_t& out_block_size) override;
 
 private:
-    IMetadataStore* meta_;
+    std::shared_ptr<IMetadataStore> meta_;
     std::string datanode_endpoint_;
 
     // 运行时：按 path 缓存 FileBlockMeta（blocks 只存在这里，不写入 xattr）

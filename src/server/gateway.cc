@@ -26,11 +26,11 @@ int HdfsCephGateway::init() {
         return rc;
     }
 
-    // 2) 创建 metadata store
     auto meta_store = std::make_shared<XattrMetadataStore>(ceph_);
+    auto block_mgr = std::make_shared<BlockManager>(meta_store, cfg_.datanode_endpoint);
 
-    // 3) 创建 InternalGatewayServiceImpl
-    internal_service_ = std::make_shared<InternalGatewayServiceImpl>(ceph_, meta_store);
+    // 创建 InternalGatewayServiceImpl
+    internal_service_ = std::make_shared<InternalGatewayServiceImpl>(ceph_, meta_store, block_mgr);
     internal_rpc_server_ =
         std::make_unique<internal_rpc::InternalRpcServer>(internal_service_);
 

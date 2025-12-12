@@ -2646,12 +2646,26 @@ class GetBlockLocationsResponse : public ::google::protobuf::Message /* @@protoc
   ::hcg::internal::RpcStatus* mutable_status();
   void set_allocated_status(::hcg::internal::RpcStatus* status);
 
+  // uint64 file_length = 3;
+  void clear_file_length();
+  static const int kFileLengthFieldNumber = 3;
+  ::google::protobuf::uint64 file_length() const;
+  void set_file_length(::google::protobuf::uint64 value);
+
+  // uint64 block_size = 4;
+  void clear_block_size();
+  static const int kBlockSizeFieldNumber = 4;
+  ::google::protobuf::uint64 block_size() const;
+  void set_block_size(::google::protobuf::uint64 value);
+
   // @@protoc_insertion_point(class_scope:hcg.internal.GetBlockLocationsResponse)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::RepeatedPtrField< ::hcg::internal::BlockLocationProto > blocks_;
   ::hcg::internal::RpcStatus* status_;
+  ::google::protobuf::uint64 file_length_;
+  ::google::protobuf::uint64 block_size_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::protobuf_gateway_5finternal_2eproto::TableStruct;
 };
@@ -5455,6 +5469,34 @@ inline const ::google::protobuf::RepeatedPtrField< ::hcg::internal::BlockLocatio
 GetBlockLocationsResponse::blocks() const {
   // @@protoc_insertion_point(field_list:hcg.internal.GetBlockLocationsResponse.blocks)
   return blocks_;
+}
+
+// uint64 file_length = 3;
+inline void GetBlockLocationsResponse::clear_file_length() {
+  file_length_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 GetBlockLocationsResponse::file_length() const {
+  // @@protoc_insertion_point(field_get:hcg.internal.GetBlockLocationsResponse.file_length)
+  return file_length_;
+}
+inline void GetBlockLocationsResponse::set_file_length(::google::protobuf::uint64 value) {
+  
+  file_length_ = value;
+  // @@protoc_insertion_point(field_set:hcg.internal.GetBlockLocationsResponse.file_length)
+}
+
+// uint64 block_size = 4;
+inline void GetBlockLocationsResponse::clear_block_size() {
+  block_size_ = GOOGLE_ULONGLONG(0);
+}
+inline ::google::protobuf::uint64 GetBlockLocationsResponse::block_size() const {
+  // @@protoc_insertion_point(field_get:hcg.internal.GetBlockLocationsResponse.block_size)
+  return block_size_;
+}
+inline void GetBlockLocationsResponse::set_block_size(::google::protobuf::uint64 value) {
+  
+  block_size_ = value;
+  // @@protoc_insertion_point(field_set:hcg.internal.GetBlockLocationsResponse.block_size)
 }
 
 // -------------------------------------------------------------------

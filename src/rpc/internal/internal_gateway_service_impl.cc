@@ -1,5 +1,7 @@
 #include "rpc/internal/internal_gateway_service_impl.h"
 #include "common/logging.h"
+#include "core/block/block_manager.h"
+#include "meta/metadata_store.h"
 
 #include <algorithm>
 #include <functional>
@@ -10,9 +12,11 @@ namespace hcg
 
     InternalGatewayServiceImpl::InternalGatewayServiceImpl(
         std::shared_ptr<CephFsAdapter> ceph,
-        std::shared_ptr<IMetadataStore> meta_store)
+        std::shared_ptr<IMetadataStore> meta_store,
+        std::shared_ptr<BlockManager> block_mgr)
         : ceph_(std::move(ceph)),
-          meta_store_(std::move(meta_store)) {}
+          meta_store_(std::move(meta_store)),
+          block_mgr_(std::move(block_mgr)) {}
 
     void InternalGatewayServiceImpl::set_status_ok(internal::RpcStatus *st)
     {
@@ -300,111 +304,142 @@ namespace hcg
     }
 
     // ---------- AllocateBlock ----------
+void InternalGatewayServiceImpl::AllocateBlock(
+    const internal::AllocateBlockRequest& req,
+    internal::AllocateBlockResponse& rsp) {
+    auto* st_pb = rsp.mutable_status();
+    set_status_ok(st_pb);
 
-    void InternalGatewayServiceImpl::AllocateBlock(
-        const internal::AllocateBlockRequest &req,
-        internal::AllocateBlockResponse &rsp)
-    {
-        auto *st = rsp.mutable_status();
-        set_status_ok(st);
+    const std::string& path = req.path();
+    log(LogLevel::DEBUG,
+        "InternalGatewayServiceImpl::AllocateBlock path=%s",
+        path.c_str());
 
-        const std::string &path = req.path();
-
-        FileBlockMeta meta;
-        if (meta_store_->load_file_block_meta(path, meta) != Status::OK())
-        {
-            // 若没有 meta，尝试读一遍 stat 初始化 length
-            CephStat cs;
-            int rc = ceph_->stat(path, cs);
-            if (rc < 0)
-            {
-                set_status_err(st, rc, "stat failed");
-                return;
-            }
-            meta.length = cs.size;
-            meta.block_size = 128ULL * 1024 * 1024;
-            meta.replication = 1;
-        }
-
-        // 当前 length 决定下一个 block index
-        std::uint64_t block_size = meta.block_size;
-        std::uint64_t curr_len = meta.length;
-        std::uint64_t next_index = curr_len / block_size;
-
-        // 这里先不立即更新 length，等写入时再根据实际写入长度更新
-        if (meta_store_->save_file_block_meta(path, meta) != Status::OK())
-        {
-            set_status_err(st, -1, "save_file_block_meta failed");
-            return;
-        }
-
-        auto *bh = rsp.mutable_block();
-        bh->set_file_id(calc_file_id_from_path(path));
-        bh->set_index(next_index);
-        bh->set_path(path);
-
-        rsp.set_block_size(block_size);
-
-        log(LogLevel::INFO, "AllocateBlock path=%s index=%lu block_size=%lu",
-            path.c_str(),
-            (unsigned long)next_index,
-            (unsigned long)block_size);
+    // 1) 调用 BlockManager 分配一个新的逻辑块
+    BlockInfo bi;
+    BlockLocation loc;
+    Status st = block_mgr_->allocate_block(path, bi, loc);
+    if (st != Status::OK()) {
+        log(LogLevel::ERROR,
+            "AllocateBlock: block_mgr_->allocate_block failed path=%s",
+            path.c_str());
+        // 这里用一个通用的错误码，或者从 st 中取 code
+        set_status_err(st_pb, st.code(), "allocate_block failed");
+        return;
     }
+
+    // 2) 从 MetaStore 读取 file_id / block_size
+    FileBlockMeta meta;
+    st = meta_store_->load_file_block_meta(path, meta);
+    if (st != Status::OK()) {
+        log(LogLevel::ERROR,
+            "AllocateBlock: load_file_block_meta failed path=%s",
+            path.c_str());
+        set_status_err(st_pb, st.code(), "load_file_block_meta failed");
+        return;
+    }
+
+    // if (meta.file_id == 0) {
+    //     // 兼容旧格式：第一次访问时补一个 file_id 并持久化
+    //     meta.file_id = meta_store_->alloc_file_id(path);
+    //     Status st2 = meta_store_->save_file_block_meta(path, meta);
+    //     if (st2 != Status::OK()) {
+    //         log(LogLevel::ERROR,
+    //             "AllocateBlock: save_file_block_meta failed path=%s",
+    //             path.c_str());
+    //         set_status_err(st_pb, st2.code(), "save_file_block_meta failed");
+    //         return;
+    //     }
+    // }
+
+    // 3) 填充 AllocateBlockResponse
+    auto* bh = rsp.mutable_block();  // BlockHandle*
+    bh->set_file_id(meta.file_id);
+    bh->set_index(bi.block_index);
+    bh->set_path(path);
+
+    rsp.set_block_size(meta.block_size);
+
+    set_status_ok(st_pb);
+}
+
 
     // ---------- GetBlockLocations ----------
+void InternalGatewayServiceImpl::GetBlockLocations(
+    const internal::GetBlockLocationsRequest& req,
+    internal::GetBlockLocationsResponse& rsp) {
+    auto* st_pb = rsp.mutable_status();
+    set_status_ok(st_pb);
 
-    void InternalGatewayServiceImpl::GetBlockLocations(
-        const internal::GetBlockLocationsRequest &req,
-        internal::GetBlockLocationsResponse &rsp)
-    {
-        auto *st = rsp.mutable_status();
-        set_status_ok(st);
+    const std::string& path   = req.path();
+    const std::uint64_t offset = req.offset();
+    const std::uint64_t length = req.length();
 
-        const std::string &path = req.path();
-        CephStat cs;
-        int rc = ceph_->stat(path, cs);
-        if (rc < 0)
-        {
-            set_status_err(st, rc, "stat failed");
-            return;
-        }
+    log(LogLevel::DEBUG,
+        "InternalGatewayServiceImpl::GetBlockLocations path=%s offset=%lu length=%lu",
+        path.c_str(),
+        static_cast<unsigned long>(offset),
+        static_cast<unsigned long>(length));
 
-        FileBlockMeta meta;
-        if (meta_store_->load_file_block_meta(path, meta) != Status::OK())
-        {
-            meta.block_size = 128ULL * 1024 * 1024;
-            meta.replication = 1;
-            meta.length = cs.size;
-        }
-        std::uint64_t file_len = cs.size;
-        std::uint64_t block_size = meta.block_size;
+    // 1) 读取持久化元数据：file_id / block_size / length
+    FileBlockMeta meta;
+    Status st = meta_store_->load_file_block_meta(path, meta);
+    if (st != Status::OK()) {
+        log(LogLevel::ERROR,
+            "GetBlockLocations: load_file_block_meta failed path=%s",
+            path.c_str());
+        set_status_err(st_pb, st.code(), "load_file_block_meta failed");
+        return;
+    }
 
-        if (file_len == 0)
-        {
-            return; // 空文件，无 block
-        }
+    // if (meta.file_id == 0) {
+    //     meta.file_id = meta_store_->alloc_file_id(path);
+    //     Status st2 = meta_store_->save_file_block_meta(path, meta);
+    //     if (st2 != Status::OK()) {
+    //         log(LogLevel::ERROR,
+    //             "GetBlockLocations: save_file_block_meta failed path=%s",
+    //             path.c_str());
+    //         set_status_err(st_pb, st2.code(), "save_file_block_meta failed");
+    //         return;
+    //     }
+    // }
 
-        // 简单分块：0 .. file_len-1
-        std::uint64_t num_blocks =
-            (file_len + block_size - 1) / block_size;
+    // 2) 调 BlockManager 计算 [offset, offset+length) 区间内的逻辑块
+    std::vector<BlockLocation> locs;
+    st = block_mgr_->get_block_locations(path, offset, length, locs);
+    if (st != Status::OK()) {
+        log(LogLevel::ERROR,
+            "GetBlockLocations: block_mgr_->get_block_locations failed path=%s",
+            path.c_str());
+        set_status_err(st_pb, st.code(), "get_block_locations failed");
+        return;
+    }
 
-        for (std::uint64_t i = 0; i < num_blocks; ++i)
-        {
-            auto *bl = rsp.add_blocks();
-            auto *bh = bl->mutable_block();
-            bh->set_file_id(calc_file_id_from_path(path));
-            bh->set_index(i);
-            bh->set_path(path);
+    // 3) 填充响应
+    rsp.set_file_length(meta.length);
+    rsp.set_block_size(meta.block_size);
+    for (const auto& loc : locs) {
+        auto* out = rsp.add_blocks();
 
-            std::uint64_t off = i * block_size;
-            std::uint64_t len = std::min(block_size, file_len - off);
-            bl->set_offset(off);
-            bl->set_length(len);
+        // BlockHandle
+        auto* bh = out->mutable_block();
+        bh->set_file_id(meta.file_id);
+        bh->set_index(loc.block.block_index);
+        bh->set_path(path);
 
-            // Stage 0：单 DataNode 地址
-            bl->add_datanodes("127.0.0.1:50010");
+        // offset/length
+        out->set_offset(loc.block.offset);
+        out->set_length(loc.block.length);
+
+        // datanodes
+        for (const auto& dn : loc.datanodes) {
+            out->add_datanodes(dn);
         }
     }
+
+    set_status_ok(st_pb);
+}
+
 
     // ---------- WriteBlock ----------
 

@@ -7,7 +7,7 @@
 
 namespace hcg {
 
-BlockManager::BlockManager(IMetadataStore* meta, std::string datanode_endpoint)
+BlockManager::BlockManager(std::shared_ptr<IMetadataStore> meta, std::string datanode_endpoint)
     : meta_(meta),
       datanode_endpoint_(std::move(datanode_endpoint)) {
 }
