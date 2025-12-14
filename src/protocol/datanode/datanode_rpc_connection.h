@@ -97,6 +97,7 @@ private:
     bool write_varint32(uint32_t value);
     bool read_proto_delimited(google::protobuf::Message& msg);
     bool write_proto_delimited(const google::protobuf::Message& msg);
+    bool write_proto_with_fixed_len(const google::protobuf::Message& msg);
     bool peek_at_least(size_t want, std::vector<uint8_t>& out, int timeout_ms);
 };
 

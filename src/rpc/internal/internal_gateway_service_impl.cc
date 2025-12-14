@@ -131,6 +131,21 @@ namespace hcg
         fh->set_file_id(calc_file_id_from_path(path));
         fh->set_path(path);
 
+        // Populate FileStatus so upper HDFS layer can pick up block_size/replication.
+        auto *fs = rsp.mutable_filestatus();
+        fs->set_path(path);
+        fs->set_is_dir(false);
+        fs->set_length(meta.length);
+        fs->set_replication(meta.replication);
+        fs->set_block_size(meta.block_size);
+        fs->set_mode(req.mode());
+        fs->set_owner("hdfs");
+        fs->set_group("hdfs");
+        fs->set_modification_time(0);
+        fs->set_access_time(0);
+
+        rsp.set_status_code(internal::CREATE_FILE_STATUS_OK);
+
         log(LogLevel::INFO, "CreateFile path=%s block_size=%lu",
             path.c_str(), (unsigned long)meta.block_size);
     }

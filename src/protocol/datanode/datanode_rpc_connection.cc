@@ -314,7 +314,9 @@ bool DataRpcConnection::handle_write_block() {
     //     // 填充下游确认信息
     // }
     
-    if (!send_block_op_response(initial_rsp)) {
+// 💥 关键修改点 1：使用 send_block_op_response (内部使用 Varint) 
+    if (!send_block_op_response(initial_rsp)) { 
+        log(LogLevel::ERROR, "Failed to send initial response");
         return false;
     }
 
@@ -386,15 +388,9 @@ bool DataRpcConnection::handle_write_block() {
         ack.set_seqno(seq_no);
         ack.add_reply(SUCCESS);
         
-        // 序列化并发送
-        std::string ack_bytes;
-        ack.SerializeToString(&ack_bytes);
-        uint32_t ack_len = htonl(ack_bytes.size());
-        
-        if (!write_full(&ack_len, sizeof(ack_len))) {
-            return false;
-        }
-        if (!write_full(ack_bytes.data(), ack_bytes.size())) {
+        // 推荐：HDFS PipelineAck uses protobuf delimited framing (varint32 length)
+        if (!write_proto_delimited(ack)) {
+            log(LogLevel::ERROR, "Failed to send PipelineAckProto");
             return false;
         }
 
@@ -936,4 +932,28 @@ bool DataRpcConnection::write_proto_delimited(const google::protobuf::Message& m
     return write_full(bytes.data(), bytes.size());
 }
 
+// datanode_rpc_connection.cc (新增)
+
+
+/**
+ * @brief 使用 4 字节 Big-Endian 长度前缀发送 Protobuf 消息（用于 Pipeline Ack）
+ */
+bool DataRpcConnection::write_proto_with_fixed_len(const google::protobuf::Message& msg) {
+    std::string bytes;
+    if (!msg.SerializeToString(&bytes)) {
+        return false;
+    }
+
+    // 1. 消息长度转换为 4 字节 Big-Endian (网络字节序)
+    uint32_t net_len = htonl(static_cast<uint32_t>(bytes.size()));
+    
+    // 2. 发送 4 字节的长度前缀
+    if (!write_full(&net_len, sizeof(net_len))) {
+        log(LogLevel::ERROR, "Failed to write response length (4-byte fixed)");
+        return false;
+    }
+    
+    // 3. 发送 Protobuf 消息体
+    return write_full(bytes.data(), bytes.size());
+}
 } // namespace hcg

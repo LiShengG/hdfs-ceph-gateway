@@ -48,39 +48,34 @@ inline void split_host_port(const std::string& ep,
 
 // 把 "host:port" 转成 HDFS 的 DatanodeInfoProto
 inline void fill_datanode_info(const std::string& endpoint,
-        DatanodeInfoProto* dn) {
+    DatanodeInfoProto* dn) {
     std::string host;
-    std::uint32_t port = 0;
+    std::uint32_t port = 0; 
     split_host_port(endpoint, host, port);
 
-    // --- DatanodeIDProto (required fields) ---
     auto* id_proto = dn->mutable_id();
     id_proto->set_ipaddr(host);
     id_proto->set_hostname("node-1");
-    id_proto->set_datanodeuuid("abc-098"); // 保持您设置的 UUID
+    id_proto->set_datanodeuuid("abc-098");
     id_proto->set_xferport(port);
     id_proto->set_infoport(port);
     id_proto->set_ipcport(port);
 
-    // --- DatanodeIDProto (optional fields) ---
-    // 显式设置 optional 字段，避免 Java 客户端将缺失字段解析为 null
-    id_proto->set_infosecureport(0); // 字段 7
+    // DatanodeIDProto optional fields
+    id_proto->set_infosecureport(0);
+    // 💥 关键修复：显式设置 suffix 字段（字段 8）  // 即使是空字符串，也要确保它被序列化，避免 Java 客户端解析失败。 id_proto->set_suffix(""); 
 
     // --- DatanodeInfoProto (optional fields) ---
-    // 确保 DatanodeInfoProto 自身的 optional 字段也被设置
-    // DatanodeInfoProto 定义中包含 capacity, dfsUsed, remaining, xceiverCount, location, nonDfsUsed, adminState
-    
+    // 保持不变，确保了其他字段也被设置，避免 Protobuf 兼容性问题。
     dn->set_capacity(0);
     dn->set_dfsused(0);
     dn->set_remaining(0);
-    dn->set_blockpoolused(0); // 别忘了这个字段 (通常是字段 5)
-    dn->set_lastupdate(0);    // 字段 6
-    dn->set_xceivercount(0); // 字段 7
-    dn->set_location("");     // 字段 8 (string)
-    dn->set_nondfsused(0);    // 字段 9
-    dn->set_adminstate(hadoop::hdfs::DatanodeInfoProto::NORMAL); // 字段 10
-
-    // 注意：这里的字段顺序是基于标准的 DatanodeInfoProto 定义，请确保与您的定义一致。
+    dn->set_blockpoolused(0);
+    dn->set_lastupdate(0);
+    dn->set_xceivercount(0);
+    dn->set_location("");
+    dn->set_nondfsused(0);
+    dn->set_adminstate(hadoop::hdfs::DatanodeInfoProto::NORMAL);
 }
 
 } // anonymous namespace
@@ -352,8 +347,9 @@ void HdfsNamenodeServiceImpl::create(
     // fs->mutable_locations()
 
     log(LogLevel::DEBUG,
-        "HdfsNamenodeServiceImpl::create success src=%s length=%llu", src.c_str(),
-        static_cast<unsigned long long>(fs->length()));
+        "HdfsNamenodeServiceImpl::create success src=%s length=%llu rsp.fs().blocksize()=%d", src.c_str(),
+        static_cast<unsigned long long>(fs->length()),
+        rsp.fs().blocksize());
 }
 
 void HdfsNamenodeServiceImpl::addBlock(
@@ -377,16 +373,18 @@ void HdfsNamenodeServiceImpl::addBlock(
             path.c_str(),
             irsp.status().code(),
             irsp.status().message().c_str());
+        // 建议：如果内部服务失败，应该返回一个 RPC 错误给客户端
+        // 例如：throw RpcException(irsp.status().code(), irsp.status().message());
         return;
     }
 
     const internal::BlockHandle& bh = irsp.block();
     const std::uint64_t file_id     = bh.file_id();
     const std::uint64_t block_index = bh.index();
-    const std::uint64_t block_size  = irsp.block_size();
-
-    const std::uint64_t block_len    = 0;
-    const std::uint64_t block_offset = block_index * block_size;
+    
+    // NameNode默认块大小 (128MB)，用于告知客户端这个块的最大容量。
+    const std::uint64_t DEFAULT_HDFS_BLOCK_SIZE = 134217728; 
+    const std::uint64_t block_offset = block_index * DEFAULT_HDFS_BLOCK_SIZE;
 
     // 2) 计算 blockId
     hcg::BlockId bid = hcg::make_block_id(file_id, block_index);
@@ -398,8 +396,11 @@ void HdfsNamenodeServiceImpl::addBlock(
     ExtendedBlockProto* eb = lb->mutable_b();
     eb->set_poolid(block_pool_id_);
     eb->set_blockid(static_cast<std::uint64_t>(bid));
-    eb->set_generationstamp(1);     // Stage 2 简化
-    eb->set_numbytes(block_len);    // 初始 0
+    eb->set_generationstamp(1);
+    
+    // 💥 关键修复点：直接设置默认块大小
+    // 确保客户端知道这个新块的最大容量是 128MB。
+    eb->set_numbytes(DEFAULT_HDFS_BLOCK_SIZE); 
 
     // 3.2 offset（必填）
     lb->set_offset(block_offset);
@@ -408,8 +409,7 @@ void HdfsNamenodeServiceImpl::addBlock(
     DatanodeInfoProto* dn = lb->add_locs();
     fill_datanode_info(datanode_endpoint_, dn);
 
-    // 关键：确保 DatanodeID 里的 datanodeUuid 非空（强烈建议）
-    // 如果 fill_datanode_info 已经填了，可以删掉；否则建议加上：
+    // 检查并设置 Datanode UUID (关键，确保不会因为 null 导致客户端内部 NPE)
     if (dn->has_id() && dn->mutable_id()->datanodeuuid().empty()) {
         dn->mutable_id()->set_datanodeuuid("gw-dn-uuid-0");
     }
@@ -417,25 +417,24 @@ void HdfsNamenodeServiceImpl::addBlock(
     // 3.4 corrupt（必填）
     lb->set_corrupt(false);
 
-    // 3.5 blockToken（Stage 2：可空 token，但字段要有）
+    // 3.5 blockToken（必填，即使是空 Token）
     TokenProto* tok = lb->mutable_blocktoken();
     tok->set_identifier("");
     tok->set_password("");
     tok->set_kind("");
     tok->set_service("");
 
-    // 3.6 isCached：与 locs 对齐（可选但建议对齐）
+    // 3.6 isCached：与 locs 对齐
     lb->add_iscached(false);
 
-    // 3.7 storageTypes：与 locs 对齐（强烈建议对齐）
+    // 3.7 storageTypes：与 locs 对齐
     lb->add_storagetypes(StorageTypeProto::DISK);
 
-    // 3.8 storageIDs：与 locs 对齐（必须！否则 client 侧 NPE）
-    // 这里给一个稳定、非空的字符串即可；后续你可以做成配置项或真实 UUID
+    // 3.8 storageIDs：与 locs 对齐（必须！）
     const std::string storage_id = "gw-storage-0";
     lb->add_storageids(storage_id);
 
-    log(LogLevel::DEBUG,
+   log(LogLevel::DEBUG,
         "addBlock: locs=%d storageTypes=%d storageIDs=%d storageID[0]=%s "
         "dn(ip=%s xfer=%d info=%d ipc=%d uuid=%s)",
         lb->locs_size(),
