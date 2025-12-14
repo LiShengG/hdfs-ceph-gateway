@@ -616,6 +616,16 @@ void HdfsNamenodeServiceImpl::getFsStatus(
     // rsp.set_missing_blocks(0);
 }
 
+void HdfsNamenodeServiceImpl::rename(
+    const hadoop::hdfs::RenameRequestProto& req,
+    hadoop::hdfs::RenameResponseProto& rsp) {
+    log(LogLevel::INFO, "HdfsNamenodeServiceImpl::rename src=%s dst=%s",
+        req.src().c_str(), req.dst().c_str());
+
+    Status st = internal_->Rename(req.src(), req.dst());
+    rsp.set_result(st == Status::OK());
+}
+
 void HdfsNamenodeServiceImpl::abandonBlock(const hadoop::hdfs::AbandonBlockRequestProto& req,
                                            hadoop::hdfs::AbandonBlockResponseProto& rsp) {
   const auto& b = req.b();

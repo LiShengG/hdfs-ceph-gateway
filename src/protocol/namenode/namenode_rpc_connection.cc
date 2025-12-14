@@ -357,7 +357,15 @@ bool NameRpcConnection::dispatch(
         rsp.SerializeToString(&out_response_bytes);
         return true;
 
-    }  else if (method == "abandonBlock")  {
+    } else if (method == "rename") {
+        ::hadoop::hdfs::RenameRequestProto req;
+        ::hadoop::hdfs::RenameResponseProto rsp;
+        req.ParseFromString(param_bytes);
+        service_->rename(req, rsp);
+        rsp.SerializeToString(&out_response_bytes);
+        return true;
+
+     }  else if (method == "abandonBlock")  {
         hadoop::hdfs::AbandonBlockRequestProto req;
         hadoop::hdfs::AbandonBlockResponseProto rsp;
         service_->abandonBlock(req, rsp);

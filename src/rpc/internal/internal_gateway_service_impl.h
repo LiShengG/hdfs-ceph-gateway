@@ -44,6 +44,8 @@ public:
 
     void Complete(const internal::CompleteRequest& req,
                   internal::CompleteResponse& rsp) override;
+    
+    Status Rename(const std::string& src, const std::string& dst) override;
 
 private:
     std::shared_ptr<CephFsAdapter> ceph_;

@@ -45,6 +45,8 @@ public:
 
     virtual void Complete(const internal::CompleteRequest& req,
                           internal::CompleteResponse& rsp) = 0;
+    
+    virtual Status Rename(const std::string& src, const std::string& dst) = 0;
 };
 
 } // namespace hcg

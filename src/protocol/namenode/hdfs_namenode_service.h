@@ -39,6 +39,8 @@ public:
     virtual void complete(const hadoop::hdfs::CompleteRequestProto& req,
                           hadoop::hdfs::CompleteResponseProto& rsp) = 0;
 
+    virtual void rename(const hadoop::hdfs::RenameRequestProto& req,
+        hadoop::hdfs::RenameResponseProto& rsp) = 0;
     // 其它辅助
     virtual void getServerDefaults(
         const hadoop::hdfs::GetServerDefaultsRequestProto& req,

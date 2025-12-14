@@ -45,6 +45,9 @@ public:
     void abandonBlock(const hadoop::hdfs::AbandonBlockRequestProto& req,
                                            hadoop::hdfs::AbandonBlockResponseProto& rsp) override;
 
+    void rename(const hadoop::hdfs::RenameRequestProto& req,
+            hadoop::hdfs::RenameResponseProto& rsp) override;
+
 private:
     std::shared_ptr<IInternalGatewayService> internal_;
     std::string block_pool_id_ = "BP-1";         // 简单写死一个 BlockPoolId
