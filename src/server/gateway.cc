@@ -5,6 +5,7 @@
 #include "common/logging.h"
 #include "rpc/internal/internal_gateway_service_impl.h"
 #include "protocol/namenode/hdfs_namenode_service_impl.h"
+#include "protocol/datanode/hdfs_datanode_service_impl.h"
 #include "meta/xattr_metadata_store.h"
 
 namespace hcg {
@@ -36,7 +37,10 @@ int HdfsCephGateway::init() {
 
     // Stage 1: HDFS NN 服务实现（基于 internal_service_）
     hdfs_nn_svc_ = std::make_shared<HdfsNamenodeServiceImpl>(internal_service_);
-    hdfs_rpc_ = std::make_unique<NameRpcServer>(hdfs_nn_svc_);
+    nn_server = std::make_unique<NameRpcServer>(hdfs_nn_svc_);
+
+    hdfs_dn_svc_ = std::make_shared<HdfsDatanodeServiceImpl>(internal_service_);
+    dn_server = std::make_unique<DataRpcServer>(hdfs_dn_svc_);
 
     return 0;
 }
@@ -57,13 +61,19 @@ int HdfsCephGateway::start() {
         log(LogLevel::ERROR, "start internal RPC server failed rc=%d", rc);
         return rc;
     }
-    rc = hdfs_rpc_->start("0.0.0.0", 9000); // 这里端口可以通过配置来
+    rc = nn_server->start(cfg_.nn_bind, cfg_.nn_port); 
     if (rc != 0) {
-        log(LogLevel::ERROR, "start hdfs_rpc_ RPC server failed rc=%d", rc);
+        log(LogLevel::ERROR, "start nn_server RPC server failed rc=%d", rc);
+        return rc;
+    }
+    running_ = true;
+
+    rc = dn_server->start(cfg_.dn_bind, cfg_.dn_port);
+    if (rc != 0) {
+        log(LogLevel::ERROR, "start dn_server RPC server failed rc=%d", rc);
         return rc;
     }
 
-    running_ = true;
     log(LogLevel::INFO, "HdfsCephGateway started (internal rpc only)");
     return 0;
 }
@@ -77,19 +87,24 @@ int HdfsCephGateway::stop() {
     // running_ = false;
     // log(LogLevel::INFO, "HdfsCephGateway stopped");
     // return 0;
-
     if (!running_) return 0;
 
     if (internal_rpc_server_) {
         internal_rpc_server_->stop();
     }
 
-    // 原来的 nn_server_ / dn_server_ stop...
+    if (nn_server) {
+        nn_server->stop();
+    }
+
+    if (dn_server) {
+        dn_server->stop();
+    }
+
     if (ceph_) {
         ceph_->shutdown();
     }
 
-    running_ = false;
     log(LogLevel::INFO, "HdfsCephGateway stopped");
     return 0;
 }

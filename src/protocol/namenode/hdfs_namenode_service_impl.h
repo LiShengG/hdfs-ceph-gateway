@@ -42,10 +42,13 @@ public:
         const hadoop::hdfs::GetFsStatusRequestProto& req,
         hadoop::hdfs::GetFsStatsResponseProto& rsp) override;
 
+    void abandonBlock(const hadoop::hdfs::AbandonBlockRequestProto& req,
+                                           hadoop::hdfs::AbandonBlockResponseProto& rsp) override;
+
 private:
     std::shared_ptr<IInternalGatewayService> internal_;
     std::string block_pool_id_ = "BP-1";         // 简单写死一个 BlockPoolId
-    std::string datanode_endpoint_;  
+    std::string datanode_endpoint_ = "127.0.0.1:50010";  
 };
 
 } // namespace hcg

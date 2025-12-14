@@ -13,6 +13,12 @@ struct BlockInfo {
     std::uint64_t block_index;
     std::uint64_t offset;
     std::uint64_t length;
+    std::string block_id;
+    std::string block_pool_id;
+    uint64_t generation_stamp;
+    uint64_t num_bytes;
+    std::string local_path;
+    uint32_t checksum;
 };
 
 // 用多少 bit 存 block_index（剩余 bit 给 file_id）

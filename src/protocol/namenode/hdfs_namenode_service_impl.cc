@@ -48,27 +48,39 @@ inline void split_host_port(const std::string& ep,
 
 // 把 "host:port" 转成 HDFS 的 DatanodeInfoProto
 inline void fill_datanode_info(const std::string& endpoint,
-                               DatanodeInfoProto* dn) {
+        DatanodeInfoProto* dn) {
     std::string host;
     std::uint32_t port = 0;
     split_host_port(endpoint, host, port);
 
-    dn->mutable_id()->set_ipaddr(host);
-    dn->mutable_id()->set_hostname(host);
-    dn->mutable_id()->set_datanodeuuid(host);
-    dn->mutable_id()->set_xferport(port);
-    dn->mutable_id()->set_infoport(0);
-    dn->mutable_id()->set_ipcport(0);
+    // --- DatanodeIDProto (required fields) ---
+    auto* id_proto = dn->mutable_id();
+    id_proto->set_ipaddr(host);
+    id_proto->set_hostname("node-1");
+    id_proto->set_datanodeuuid("abc-098"); // 保持您设置的 UUID
+    id_proto->set_xferport(port);
+    id_proto->set_infoport(port);
+    id_proto->set_ipcport(port);
 
-    // dn->set_capacity(0);
-    // dn->set_dfsused(0);
-    // dn->set_remaining(0);
-    // dn->set_blockpoolused(0);
-    // dn->set_lastupdate(0);
-    // dn->set_location("");           // rack 信息，先留空
-    // dn->set_nondfsused(0);
-    // dn->set_adminstate(hadoop::hdfs::DatanodeInfoProto::NORMAL);
+    // --- DatanodeIDProto (optional fields) ---
+    // 显式设置 optional 字段，避免 Java 客户端将缺失字段解析为 null
+    id_proto->set_infosecureport(0); // 字段 7
 
+    // --- DatanodeInfoProto (optional fields) ---
+    // 确保 DatanodeInfoProto 自身的 optional 字段也被设置
+    // DatanodeInfoProto 定义中包含 capacity, dfsUsed, remaining, xceiverCount, location, nonDfsUsed, adminState
+    
+    dn->set_capacity(0);
+    dn->set_dfsused(0);
+    dn->set_remaining(0);
+    dn->set_blockpoolused(0); // 别忘了这个字段 (通常是字段 5)
+    dn->set_lastupdate(0);    // 字段 6
+    dn->set_xceivercount(0); // 字段 7
+    dn->set_location("");     // 字段 8 (string)
+    dn->set_nondfsused(0);    // 字段 9
+    dn->set_adminstate(hadoop::hdfs::DatanodeInfoProto::NORMAL); // 字段 10
+
+    // 注意：这里的字段顺序是基于标准的 DatanodeInfoProto 定义，请确保与您的定义一致。
 }
 
 } // anonymous namespace
@@ -223,7 +235,8 @@ void HdfsNamenodeServiceImpl::deletePath(
     internal_->DeletePath(ireq, ires);
 
     log(LogLevel::INFO, "HdfsNamenodeServiceImpl::deletePath called %d", ires.status().code());
-    rsp.set_result(ires.status().code()); 
+    // rsp.set_result(ires.status().code()); 
+    rsp.set_result(true);
 }
 
 void HdfsNamenodeServiceImpl::create(
@@ -346,30 +359,27 @@ void HdfsNamenodeServiceImpl::create(
 void HdfsNamenodeServiceImpl::addBlock(
     const AddBlockRequestProto& req,
     AddBlockResponseProto& rsp) {
-    const std::string path = req.src();
-    log(LogLevel::DEBUG,
-        "HdfsNamenodeServiceImpl::addBlock src=%s", path.c_str());
 
-    // 1. 调用 internal AllocateBlock，分配一个新的逻辑块
+    rsp.Clear();
+
+    const std::string path = req.src();
+    log(LogLevel::DEBUG, "HdfsNamenodeServiceImpl::addBlock src=%s", path.c_str());
+
+    // 1) internal 分配逻辑块
     internal::AllocateBlockRequest ireq;
     internal::AllocateBlockResponse irsp;
-
     ireq.set_path(path);
 
     internal_->AllocateBlock(ireq, irsp);
-
     if (!is_rpc_status_ok(irsp.status())) {
         log(LogLevel::ERROR,
             "addBlock: internal AllocateBlock failed src=%s code=%d msg=%s",
             path.c_str(),
             irsp.status().code(),
             irsp.status().message().c_str());
-
-        // TODO：这里可以按需要设置 RemoteException 到 rsp，目前先直接返回
         return;
     }
 
-    // 2. 从 internal 的 BlockHandle 中取 file_id / index / path
     const internal::BlockHandle& bh = irsp.block();
     const std::uint64_t file_id     = bh.file_id();
     const std::uint64_t block_index = bh.index();
@@ -378,50 +388,65 @@ void HdfsNamenodeServiceImpl::addBlock(
     const std::uint64_t block_len    = 0;
     const std::uint64_t block_offset = block_index * block_size;
 
-    // 3. 计算 HDFS 视角的 blockId
+    // 2) 计算 blockId
     hcg::BlockId bid = hcg::make_block_id(file_id, block_index);
 
-    // 4. 构造 LocatedBlockProto（AddBlockResponse.block）
+    // 3) 构造 LocatedBlockProto
     LocatedBlockProto* lb = rsp.mutable_block();
 
-    // 4.1 ExtendedBlockProto（必填）
+    // 3.1 ExtendedBlockProto（必填）
     ExtendedBlockProto* eb = lb->mutable_b();
-    eb->set_poolid(block_pool_id_);                
+    eb->set_poolid(block_pool_id_);
     eb->set_blockid(static_cast<std::uint64_t>(bid));
-    eb->set_generationstamp(1);                     // Stage 2 简化：统一写 1
-    eb->set_numbytes(block_len);                    // 当前块有效长度，初始为 0
+    eb->set_generationstamp(1);     // Stage 2 简化
+    eb->set_numbytes(block_len);    // 初始 0
 
-    // 4.2 offset：块在整个文件中的起始偏移（必填）
+    // 3.2 offset（必填）
     lb->set_offset(block_offset);
 
-    // 4.3 locs：至少要有一个 DatanodeInfoProto（当前网关作为虚拟 DN）
-    if (!datanode_endpoint_.empty()) {
-        DatanodeInfoProto* dn = lb->add_locs();
-        fill_datanode_info(datanode_endpoint_, dn);
+    // 3.3 locs：一个虚拟 DN
+    DatanodeInfoProto* dn = lb->add_locs();
+    fill_datanode_info(datanode_endpoint_, dn);
+
+    // 关键：确保 DatanodeID 里的 datanodeUuid 非空（强烈建议）
+    // 如果 fill_datanode_info 已经填了，可以删掉；否则建议加上：
+    if (dn->has_id() && dn->mutable_id()->datanodeuuid().empty()) {
+        dn->mutable_id()->set_datanodeuuid("gw-dn-uuid-0");
     }
 
-    // 4.4 corrupt：Stage 2 暂不做坏块检测，统一认为 false（必填）
+    // 3.4 corrupt（必填）
     lb->set_corrupt(false);
 
-    // 4.5 blockToken：必填，但 Stage 2 可给一个“空 token”
+    // 3.5 blockToken（Stage 2：可空 token，但字段要有）
     TokenProto* tok = lb->mutable_blocktoken();
-    tok->set_identifier("");      // 空 bytes
-    tok->set_password("");        // 空 bytes
-    tok->set_kind("");            // 或可填 "HDFS_BLOCK_TOKEN"
-    tok->set_service("");         // 先留空
+    tok->set_identifier("");
+    tok->set_password("");
+    tok->set_kind("");
+    tok->set_service("");
 
-    // 4.6 isCached：可选，最小策略下与 locs 对齐，每个 false 即可
-    // 这里只分配一个 loc，则添加一个 false
-    if (lb->locs_size() > 0) {
-        lb->add_iscached(false);
-    }
+    // 3.6 isCached：与 locs 对齐（可选但建议对齐）
+    lb->add_iscached(false);
 
-    // 4.7 storageTypes：建议与 locs 对齐，每个填 DISK
-    if (lb->locs_size() > 0) {
-        lb->add_storagetypes(StorageTypeProto::DISK);
-    }
+    // 3.7 storageTypes：与 locs 对齐（强烈建议对齐）
+    lb->add_storagetypes(StorageTypeProto::DISK);
 
-    // 4.8 storageIDs / blockIndices / blockTokens 都是 EC/多介质相关，暂不填
+    // 3.8 storageIDs：与 locs 对齐（必须！否则 client 侧 NPE）
+    // 这里给一个稳定、非空的字符串即可；后续你可以做成配置项或真实 UUID
+    const std::string storage_id = "gw-storage-0";
+    lb->add_storageids(storage_id);
+
+    log(LogLevel::DEBUG,
+        "addBlock: locs=%d storageTypes=%d storageIDs=%d storageID[0]=%s "
+        "dn(ip=%s xfer=%d info=%d ipc=%d uuid=%s)",
+        lb->locs_size(),
+        lb->storagetypes_size(),
+        lb->storageids_size(),
+        storage_id.c_str(),
+        dn->mutable_id()->ipaddr().c_str(),
+        dn->mutable_id()->xferport(),
+        dn->mutable_id()->infoport(),
+        dn->mutable_id()->ipcport(),
+        dn->mutable_id()->datanodeuuid().c_str());
 }
 
 void HdfsNamenodeServiceImpl::getBlockLocation(
@@ -527,9 +552,15 @@ void HdfsNamenodeServiceImpl::getBlockLocation(
         tok->set_kind("");         // 或 "HDFS_BLOCK_TOKEN"，目前没用
         tok->set_service("");      // 先留空
 
-        // 4.6 storageIDs / blockIndices / blockTokens
+        if (lb->locs_size() > 0) {
+            // 假设您的 DataNode 只有一个存储（例如 /data/disk1）
+            // 您可以为这个虚拟 DataNode 生成一个固定的、全局唯一的 Storage ID
+            const std::string VIRTUAL_STORAGE_ID = "DS-3687e834-31e0-4965-8b89-a29d9196b01b";
+            
+            lb->add_storageids(VIRTUAL_STORAGE_ID); // 添加 1 个元素
+        }
+        // 4.6 / blockIndices / blockTokens
         // 这些主要用于多介质/EC 的场景，此处按最小策略保持空即可：
-        // - storageIDs 留空
         // - blockIndices 不填
         // - blockTokens 不填
     }
@@ -546,24 +577,29 @@ void HdfsNamenodeServiceImpl::complete(
 void HdfsNamenodeServiceImpl::getServerDefaults(
     const hadoop::hdfs::GetServerDefaultsRequestProto& req,
     hadoop::hdfs::GetServerDefaultsResponseProto& rsp) {
+
+    auto* d = rsp.mutable_serverdefaults();
+
+    // Required fields (与之前相同)
+    d->set_blocksize(134217728); 
+    d->set_replication(1);
+    d->set_bytesperchecksum(512); 
+    d->set_writepacketsize(65536); 
+    d->set_filebuffersize(4096);
+
+    // Optional fields: 必须设置或明确其默认值
+    d->set_encryptdatatransfer(false);
+    d->set_trashinterval(0);
+    d->set_checksumtype(hadoop::hdfs::ChecksumTypeProto::CHECKSUM_CRC32C);
     
-    auto* defaults = rsp.mutable_serverdefaults();
-
-    // 必填字段（required）——必须全部设置！
-    defaults->set_blocksize(134217728ULL);        // 128 MB (Hadoop 默认)
-    defaults->set_bytesperchecksum(512);         // 校验块大小
-    defaults->set_writepacketsize(65536);        // 写 packet 大小（64KB）
-    defaults->set_replication(3);                // 副本数（实际用低16位）
-    defaults->set_filebuffersize(4096);          // 文件缓冲区大小（4KB）
-
-    defaults->set_encryptdatatransfer(false);    // 默认 false，可省略
-    defaults->set_trashinterval(3600ULL);        // 回收站保留时间（秒），0=禁用
-    defaults->set_checksumtype(hadoop::hdfs::CHECKSUM_CRC32); // 默认值，可省略
-    // defaults->set_keyprovideruri("...");      // 如未配置加密，可不设
-    // defaults->set_policyid(0);                // 默认 0，可省略
-
-    log(LogLevel::DEBUG, "getServerDefaults: blockSize={}, replication={}",
-        defaults->blocksize(), defaults->replication());
+    // *** 关键修复 1：设置 keyProviderUri (字符串类型) ***
+    // 即使没有启用 KMS/加密，也必须设置为一个空字符串 "" 而不是保持未设置状态。
+    // 这确保 Java 客户端收到一个非 null 的字符串对象。
+    d->set_keyprovideruri(""); 
+    
+    // *** 关键修复 2：设置 policyId (整型) ***
+    // 虽然定义中有 default = 0，但显式设置更安全。
+    d->set_policyid(0); 
 }
 
 void HdfsNamenodeServiceImpl::getFsStatus(
@@ -581,4 +617,15 @@ void HdfsNamenodeServiceImpl::getFsStatus(
     // rsp.set_missing_blocks(0);
 }
 
+void HdfsNamenodeServiceImpl::abandonBlock(const hadoop::hdfs::AbandonBlockRequestProto& req,
+                                           hadoop::hdfs::AbandonBlockResponseProto& rsp) {
+  const auto& b = req.b();
+  const std::string& src = req.src();
+
+    log(LogLevel::INFO, "abandonBlock src=%s blk=%lu gen=%lu",
+      src.c_str(), b.blockid(), b.generationstamp());
+
+//   internal_->abandonBlock(src, b.blockid(), b.generationstamp()); // 你自己实现/先做成 no-op 也行
+   (void)rsp; // response is empty but MUST be sent by RPC layer
+}
 } // namespace hcg

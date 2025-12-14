@@ -149,33 +149,10 @@ void NameRpcServer::handle_client(int client_fd) {
         strncpy(client_ip_str, "unknown", INET_ADDRSTRLEN - 1);
     }
 
-
-    // TODO: Implement the actual HDFS RPC protocol handling loop here.
-    // This typically involves:
-    // 1. Reading the RPC header (e.g., RpcRequestHeaderProto)
-    // 2. Reading the request body based on method name
-    // 3. Dispatching to the appropriate method in nn_service_
-    // 4. Writing back the response
-
     // Placeholder for now - just echo or close
    log(LogLevel::INFO, "Handling client connection (fd=%d)", client_fd);
 
-    // Example placeholder logic:
-    // You would replace this with real HDFS RPC parsing/dispatching
-    // char buffer[1024];
-    // ssize_t bytes_read;
-    // while ((bytes_read = read(client_fd, buffer, sizeof(buffer))) > 0) {
-    //     // Echo back for testing
-    //     write(client_fd, buffer, bytes_read);
-    // }
-
-    // if (bytes_read < 0) {
-    //     log(LogLevel::ERROR, "Error reading from client fd=%d: %s", client_fd, strerror(errno));
-    // } else {
-    //    log(LogLevel::DEBUG, "Client fd=%d disconnected gracefully.", client_fd);
-    // }
-
-    // 当前阶段：每个连接上可以处理多个 RPC，直到对端关闭
+    // 每个连接上可以处理多个 RPC，直到对端关闭
     NameRpcConnection conn(client_fd, nn_service_);
     conn.serve();
 

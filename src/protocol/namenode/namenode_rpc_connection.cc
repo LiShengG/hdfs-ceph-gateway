@@ -293,9 +293,9 @@ bool NameRpcConnection::dispatch(
         req.ParseFromString(param_bytes);
         service_->getServerDefaults(req, rsp);
         rsp.SerializeToString(&out_response_bytes);
-        return false;
+        return true;
 
-    } else if (method == "getFsStatus") {
+    } else if (method == "getFsStats") {
         // TODO:
         ::hadoop::hdfs::GetFsStatusRequestProto req;
         ::hadoop::hdfs::GetFsStatsResponseProto rsp;
@@ -348,8 +348,7 @@ bool NameRpcConnection::dispatch(
         rsp.SerializeToString(&out_response_bytes);
         return true;
 
-    }  
-    else if (method == "complete") {
+    }  else if (method == "complete") {
         // TODO:
         ::hadoop::hdfs::CompleteRequestProto req;
         ::hadoop::hdfs::CompleteResponseProto rsp;
@@ -358,6 +357,11 @@ bool NameRpcConnection::dispatch(
         rsp.SerializeToString(&out_response_bytes);
         return true;
 
+    }  else if (method == "abandonBlock")  {
+        hadoop::hdfs::AbandonBlockRequestProto req;
+        hadoop::hdfs::AbandonBlockResponseProto rsp;
+        service_->abandonBlock(req, rsp);
+        return true;
     } else {
         std::cerr << "[NameRpcConnection] unsupported method: " << method << "\n";
         return false;

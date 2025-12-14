@@ -8,7 +8,7 @@
 
 namespace hcg {
 
-// HDFS NameNode 协议服务接口（只挑 Stage 1 要实现的一部分）
+// HDFS NameNode 协议服务接口
 class IHdfsNamenodeService {
 public:
     virtual ~IHdfsNamenodeService() = default;
@@ -47,6 +47,9 @@ public:
     virtual void getFsStatus(
         const hadoop::hdfs::GetFsStatusRequestProto& req,
         hadoop::hdfs::GetFsStatsResponseProto& rsp) = 0;
+
+    virtual void abandonBlock(const hadoop::hdfs::AbandonBlockRequestProto& req,
+                hadoop::hdfs::AbandonBlockResponseProto& rsp) = 0;
 };
 
 } // namespace hcg

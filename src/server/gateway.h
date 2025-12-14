@@ -9,9 +9,8 @@
 #include "core/block/block_manager.h"
 #include "core/lease/lease_manager.h"
 #include "protocol/namenode/namenode_rpc_server.h"
-#include "protocol/datanode/datanode_server.h"
+#include "protocol/datanode/datanode_rpc_server.h"
 #include "protocol/namenode/hdfs_namenode_service.h"
-#include "protocol/namenode/namenode_rpc_server.h"
 #include "rpc/internal/internal_rpc_server.h"
 #include "rpc/internal/internal_gateway_service.h"
 
@@ -22,9 +21,9 @@ struct GatewayConfig {
     std::uint16_t nn_port {9000};
 
     std::string dn_bind {"0.0.0.0"};
-    std::uint16_t dn_port {50010};
+    std::uint16_t dn_port {8020};
 
-    std::string datanode_endpoint {"127.0.0.1:50010"};
+    std::string datanode_endpoint {"127.0.0.1:8020"};
 
     CephFsConfig ceph;
 };
@@ -48,12 +47,15 @@ private:
     std::unique_ptr<LeaseManager> lm_;
 
     // std::unique_ptr<NameNodeRpcServer> nn_server_;
-    std::unique_ptr<DataNodeServer> dn_server_;
+    // std::unique_ptr<DataNodeServer> dn_server_;
     std::unique_ptr<internal_rpc::InternalRpcServer> internal_rpc_server_;
     std::shared_ptr<IInternalGatewayService> internal_service_;
 
-    std::unique_ptr<NameRpcServer> hdfs_rpc_;
+    std::unique_ptr<NameRpcServer> nn_server;
     std::shared_ptr<IHdfsNamenodeService> hdfs_nn_svc_;
+
+    std::unique_ptr<DataRpcServer> dn_server;
+    std::shared_ptr<IHdfsDatanodeService> hdfs_dn_svc_;
     
 
     bool running_ {false};
