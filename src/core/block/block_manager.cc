@@ -307,6 +307,7 @@ Status BlockManager::finalize_file_blocks(const std::string& path) {
  */
 Status BlockManager::resolve_block(BlockId block_id,
                                    std::string& out_path,
+                                   FileId& out_file_id,
                                    BlockInfo& out_block,
                                    std::uint64_t& out_block_size) {
     std::lock_guard<std::mutex> lock(mu_);
@@ -321,6 +322,7 @@ Status BlockManager::resolve_block(BlockId block_id,
 
     const RuntimeBlockLocation& rt = it->second;
     out_path       = rt.path;
+    out_file_id    = rt.file_id;
     out_block      = rt.block;
     out_block_size = rt.block_size;
 

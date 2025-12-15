@@ -3,6 +3,7 @@
 
 #include "gateway_internal.pb.h" // 由 proto 生成
 #include "common/status.h"
+#include "common/types.h"
 
 namespace hcg {
 
@@ -45,6 +46,12 @@ public:
 
     virtual void Complete(const internal::CompleteRequest& req,
                           internal::CompleteResponse& rsp) = 0;
+
+    virtual Status ResolveBlock(BlockId block_id,
+                                std::string& out_path,
+                                FileId& out_file_id,
+                                BlockInfo& out_block,
+                                std::uint64_t& out_block_size) = 0;
     
     virtual Status Rename(const std::string& src, const std::string& dst) = 0;
 };

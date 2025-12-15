@@ -42,6 +42,7 @@ public:
     // DN: 根据逻辑 BlockId 反查文件路径和 BlockInfo（Stage 2 新增）
     virtual Status resolve_block(BlockId block_id,
                                  std::string& out_path,
+                                 FileId& out_file_id,
                                  BlockInfo& out_block,
                                  std::uint64_t& out_block_size) = 0;
 };
@@ -63,6 +64,7 @@ public:
 
     Status resolve_block(BlockId block_id,
                          std::string& out_path,
+                         FileId& out_file_id,
                          BlockInfo& out_block,
                          std::uint64_t& out_block_size) override;
 

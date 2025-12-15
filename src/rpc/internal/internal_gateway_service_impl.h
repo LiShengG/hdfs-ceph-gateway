@@ -45,6 +45,12 @@ public:
     void Complete(const internal::CompleteRequest& req,
                   internal::CompleteResponse& rsp) override;
     
+    Status ResolveBlock(BlockId block_id,
+                        std::string& out_path,
+                        FileId& out_file_id,
+                        BlockInfo& out_block,
+                        std::uint64_t& out_block_size) override;
+
     Status Rename(const std::string& src, const std::string& dst) override;
 
 private:

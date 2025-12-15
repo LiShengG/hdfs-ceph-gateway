@@ -474,6 +474,15 @@ namespace hcg
         return Status::OK();
     }
 
+    // ---------- ResolveBlock ----------
+    Status InternalGatewayServiceImpl::ResolveBlock(BlockId block_id,
+                                                    std::string& out_path,
+                                                    FileId& out_file_id,
+                                                    BlockInfo& out_block,
+                                                    std::uint64_t& out_block_size) {
+        return block_mgr_->resolve_block(block_id, out_path, out_file_id, out_block, out_block_size);
+    }
+
 
     // ---------- WriteBlock ----------
 
